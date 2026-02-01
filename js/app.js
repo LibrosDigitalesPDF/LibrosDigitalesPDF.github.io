@@ -1,12 +1,21 @@
-// --- Configuración de Google Sheet ---
 const DATA_URL = "data.json";
 
 /* =====================
    CARGA DE DATOS
+   (ignora la primera fila guía)
 ===================== */
 async function loadData() {
   const res = await fetch(DATA_URL);
-  return await res.json();
+  const data = await res.json();
+
+  data.autors = data.autors.filter(a => a.autor_id && a.autor_id !== "autor_id");
+  data.libros = data.libros.filter(l => l.libro_id && l.libro_id !== "libro_id");
+  data.packs = data.packs.filter(p => p.pack_id && p.pack_id !== "pack_id");
+  data.libro_pack = data.libro_pack.filter(
+    lp => lp.libro_id && lp.libro_id !== "libro_id"
+  );
+
+  return data;
 }
 
 /* =====================
@@ -17,7 +26,7 @@ function getParam(name) {
 }
 
 /* =====================
-   INDEX - LISTADO GENERAL
+   INDEX
 ===================== */
 async function renderIndex() {
   const data = await loadData();
@@ -46,7 +55,10 @@ async function renderIndex() {
         </h2>
         <ul>
           ${librosAutor.map((libro, i) => `
-            <li>${i + 1}. ${libro.titulo} (${libro.paginas} págs)</li>
+            <li>
+              ${i + 1}. ${libro.titulo}
+              <span class="pages">(${libro.paginas} págs)</span>
+            </li>
           `).join("")}
         </ul>
       </div>
