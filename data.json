@@ -1,0 +1,36 @@
+{
+  "autors": [
+    {
+      "autor_id": "autor_id",
+      "nombre": "nombre",
+      "portada": "portada"
+    }
+  ],
+
+  "libros": [
+    {
+      "libro_id": "libro_id",
+      "autor_id": "autor_id",
+      "genero": "genero",
+      "titulo": "titulo",
+      "pack": "pack",
+      "paginas": "paginas",
+      "portada": "portada"
+    }
+  ],
+
+  "packs": [
+    {
+      "pack_id": "pack_id",
+      "nombre": "nombre",
+      "portada": "portada"
+    }
+  ],
+
+  "libro_pack": [
+    {
+      "libro_id": "libro_id",
+      "pack_id": "pack_id"
+    }
+  ]
+}
