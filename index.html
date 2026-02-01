@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Catálogo de Libros</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+}
+
+header {
+  background: #2c3e50;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+
+.buscador {
+  padding: 15px;
+  text-align: center;
+  background: #ecf0f1;
+}
+
+.buscador input {
+  width: 90%;
+  max-width: 500px;
+  padding: 10px;
+  font-size: 16px;
+}
+
+.seccion {
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+}
+
+.catalogo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  overflow: hidden;
+}
+
+.card img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+}
+
+.info {
+  padding: 15px;
+}
+
+.info h3 {
+  margin: 0 0 5px;
+}
+
+.meta {
+  font-size: 13px;
+  color: #666;
+}
+
+footer {
+  text-align: center;
+  padding: 15px;
+  background: #ddd;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>?? Catálogo de Libros</h1>
+  <p>Buscá por libro, autor o género</p>
+</header>
+
+<div class="buscador">
+  <input type="text" id="buscador" placeholder="Buscar libro, autor o género...">
+</div>
+
+<section class="seccion">
+<div class="catalogo" id="catalogo">
+
+  <div class="card libro"
+       data-titulo="el principito"
+       data-autor="antoine de saint-exupery"
+       data-genero="clasico">
+    <img src="https://via.placeholder.com/300x450?text=El+Principito">
+    <div class="info">
+      <h3>El Principito</h3>
+      <div class="meta">Antoine de Saint-Exupéry · Clásico</div>
+    </div>
+  </div>
+
+  <div class="card libro"
+       data-titulo="1984"
+       data-autor="george orwell"
+       data-genero="ciencia ficcion">
+    <img src="https://via.placeholder.com/300x450?text=1984">
+    <div class="info">
+      <h3>1984</h3>
+      <div class="meta">George Orwell · Ciencia ficción</div>
+    </div>
+  </div>
+
+  <div class="card libro"
+       data-titulo="fahrenheit 451"
+       data-autor="ray bradbury"
+       data-genero="ciencia ficcion">
+    <img src="https://via.placeholder.com/300x450?text=Fahrenheit+451">
+    <div class="info">
+      <h3>Fahrenheit 451</h3>
+      <div class="meta">Ray Bradbury · Ciencia ficción</div>
+    </div>
+  </div>
+
+</div>
+</section>
+
+<footer>
+© 2026 – Catálogo de Libros
+</footer>
+
+<script>
+// normaliza texto (quita acentos y mayúsculas)
+function normalizar(texto) {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+const input = document.getElementById("buscador");
+const libros = document.querySelectorAll(".libro");
+
+input.addEventListener("input", () => {
+  const busqueda = normalizar(input.value);
+
+  libros.forEach(libro => {
+    const textoLibro = normalizar(
+      libro.dataset.titulo +
+      " " +
+      libro.dataset.autor +
+      " " +
+      libro.dataset.genero
+    );
+
+    libro.style.display =
+      textoLibro.includes(busqueda) ? "block" : "none";
+  });
+});
+</script>
+
+</body>
+</html>
