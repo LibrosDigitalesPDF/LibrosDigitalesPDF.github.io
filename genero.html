@@ -2,68 +2,50 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>G�nero</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Género · Libros Digitales PDF</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background: #f5f5f5;
-    }
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/style.css">
 
-    header {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 30px;
-    }
+  <!-- Axios -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-    h1 {
-      margin: 0;
-    }
-
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-
-    li {
-      background: white;
-      margin-bottom: 10px;
-      padding: 10px;
-      border-radius: 6px;
-    }
-
-    a {
-      text-decoration: none;
-      color: #333;
-      font-weight: bold;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-  </style>
+  <!-- JS -->
+  <script src="js/app.js" defer></script>
 </head>
 
 <body>
 
-  <header>
-    <input
-      type="text"
-      id="buscador"
-      placeholder="Buscador"
-    >
-    <div id="resultados"></div>
+  <!-- HEADER -->
+  <header class="header">
+    <h1>📚 Libros Digitales PDF</h1>
+    <a href="index.html" class="volver">← Volver al inicio</a>
   </header>
 
-  <main>
-    <h1 id="genero-nombre"></h1>
-    <ul id="genero-libros"></ul>
+  <!-- CONTENIDO -->
+  <main class="detalle-layout">
+
+    <!-- IMAGEN DEL GÉNERO -->
+    <aside class="detalle-imagen">
+      <img id="imagen-genero" src="" alt="Género">
+    </aside>
+
+    <!-- INFO DEL GÉNERO -->
+    <section class="detalle-info">
+      <h2 id="nombre-genero"></h2>
+
+      <ol id="lista-libros-genero" class="lista-libros">
+        <!-- Libros cargados por JS -->
+      </ol>
+    </section>
+
   </main>
 
-  <script src="js/app.js"></script>
-  <script>
-    const param
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2026 · Libros Digitales PDF</p>
+  </footer>
+
+</body>
+</html>
