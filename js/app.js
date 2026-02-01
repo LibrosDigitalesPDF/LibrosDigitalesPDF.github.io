@@ -1,245 +1,143 @@
-/********************************
- CONFIG GOOGLE SHEETS
-********************************/
+// --- Configuración de Google Sheet ---
+const sheetID = "1WPEc9hzG7iaNQMaIQBc4Qth08Zc1R_vvKl9CUnd_jJE";
+const sheetName = "Sheet1";
 
-const SHEET_ID = "1WPEc9hzG7iaNQMaIQBc4Qth08Zc1R_vvKl9CUnd_jJE";
-
-const URL_AUTORES = `https://opensheet.elk.sh/${SHEET_ID}/Autores`;
-const URL_LIBROS = `https://opensheet.elk.sh/${SHEET_ID}/Libros`;
-const URL_PACKS = `https://opensheet.elk.sh/${SHEET_ID}/Packs`;
-const URL_LIBRO_PACK = `https://opensheet.elk.sh/${SHEET_ID}/Libro_Pack`;
-
-/********************************
- VARIABLES GLOBALES
-********************************/
-
-let autores = [];
 let libros = [];
-let packs = [];
-let libroPack = [];
+let autores = [];
 
-/********************************
- CARGA GENERAL
-********************************/
+// --- Función para obtener datos de Google Sheets ---
+async function obtenerDatos() {
+  const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?sheet=${sheetName}`;
+  const res = await axios.get(url);
+  const data = JSON.parse(res.data.substring(47).slice(0, -2)).table.rows;
+  
+  libros = data.map(r => ({
+    id: r.c[0]?.v || "",
+    autor: r.c[1]?.v || "",
+    genero: r.c[2]?.v || "",
+    nombre: r.c[3]?.v || "",
+    portada: r.c[4]?.v || ""
+  }));
 
-async function cargarDatos() {
-  try {
-    [autores, libros, packs, libroPack] = await Promise.all([
-      fetch(URL_AUTORES).then(r => r.json()),
-      fetch(URL_LIBROS).then(r => r.json()),
-      fetch(URL_PACKS).then(r => r.json()),
-      fetch(URL_LIBRO_PACK).then(r => r.json())
-    ]);
+  // Lista única de autores
+  const autorSet = new Set(libros.map(l => l.autor));
+  autores = Array.from(autorSet).sort();
 
-    detectarPagina();
-  } catch (e) {
-    console.error("Error cargando Google Sheets", e);
-  }
+  cargarListaAutores();
+  cargarSlider();
 }
 
-/********************************
- DETECTAR PÁGINA
-********************************/
+// --- Lista de autores en index.html ---
+function cargarListaAutores() {
+  const lista = document.getElementById("lista-autores");
+  if (!lista) return;
 
-function detectarPagina() {
-  const page = window.location.pathname;
-
-  if (page.includes("autor.html")) cargarAutor();
-  else if (page.includes("pack.html")) cargarPack();
-  else if (page.includes("genero.html")) cargarGenero();
-  else cargarIndex();
+  lista.innerHTML = "";
+  autores.forEach(a => {
+    const link = document.createElement("a");
+    link.href = `autor.html?id=${a}`;
+    link.textContent = a;
+    lista.appendChild(link);
+  });
 }
 
-/********************************
- UTILIDADES
-********************************/
-
-function getParam(nombre) {
-  return new URLSearchParams(window.location.search).get(nombre);
-}
-
-function librosDeAutor(autorId) {
-  return libros.filter(l => l.autor_id === autorId);
-}
-
-function librosDePack(packId) {
-  const ids = libroPack
-    .filter(lp => lp.pack_id === packId)
-    .map(lp => lp.libro_id);
-
-  return libros.filter(l => ids.includes(l.libro_id));
-}
-
-function packsDeLibro(libroId) {
-  const ids = libroPack
-    .filter(lp => lp.libro_id === libroId)
-    .map(lp => lp.pack_id);
-
-  return packs.filter(p => ids.includes(p.pack_id));
-}
-
-/********************************
- INDEX
-********************************/
-
-function cargarIndex() {
-  renderAutoresAZ();
-  renderSlider();
-  renderLibros(libros);
-  activarBuscador();
-}
-
-/********************************
- AUTORES A–Z
-********************************/
-
-function renderAutoresAZ() {
-  const ul = document.getElementById("lista-autores");
-  if (!ul) return;
-
-  ul.innerHTML = "";
-
-  autores
-    .sort((a, b) => a.nombre.localeCompare(b.nombre))
-    .forEach(a => {
-      const li = document.createElement("li");
-      li.innerHTML = `<a href="autor.html?id=${a.autor_id}">${a.nombre}</a>`;
-      ul.appendChild(li);
-    });
-}
-
-/********************************
- SLIDER (LIBROS + PACKS)
-********************************/
-
-function renderSlider() {
-  const slider = document.getElementById("slider");
+// --- Slider de libros/packs en index.html ---
+function cargarSlider() {
+  const slider = document.getElementById("slider-principal");
   if (!slider) return;
 
   slider.innerHTML = "";
-
-  const destacados = [
-    ...libros.slice(0, 3),
-    ...packs.slice(0, 2)
-  ];
-
-  let index = 0;
-
-  destacados.forEach((item, i) => {
-    const div = document.createElement("div");
-    div.className = "slide";
-    div.style.display = i === 0 ? "block" : "none";
-    div.innerHTML = `
-      <img src="${item.portada}">
-      <h3>${item.titulo || item.nombre}</h3>
-    `;
-    slider.appendChild(div);
-  });
-
-  setInterval(() => {
-    const slides = document.querySelectorAll(".slide");
-    slides.forEach(s => s.style.display = "none");
-    slides[index].style.display = "block";
-    index = (index + 1) % slides.length;
-  }, 5000);
-}
-
-/********************************
- LIBROS
-********************************/
-
-function renderLibros(lista) {
-  const cont = document.getElementById("contenedor-libros");
-  if (!cont) return;
-
-  cont.innerHTML = "";
-
-  lista.forEach(l => {
-    const autor = autores.find(a => a.autor_id === l.autor_id);
-    const div = document.createElement("div");
-    div.className = "libro-card";
-
-    div.innerHTML = `
-      <img src="${l.portada}">
-      <h4>${l.titulo}</h4>
-      <p><a href="autor.html?id=${autor.autor_id}">${autor.nombre}</a></p>
-      <p><a href="genero.html?nombre=${l.genero}">${l.genero}</a></p>
-    `;
-
-    cont.appendChild(div);
+  libros.slice(0, 5).forEach(l => {
+    const img = document.createElement("img");
+    img.src = l.portada;
+    img.alt = l.nombre;
+    slider.appendChild(img);
   });
 }
 
-/********************************
- PÁGINA AUTOR
-********************************/
+// --- Función para cargar autor individual ---
+function cargarAutor(id) {
+  const container = document.getElementById("autor-nombre");
+  const imagen = document.getElementById("autor-imagen");
+  const lista = document.getElementById("autor-libros");
 
-function cargarAutor() {
-  const id = getParam("id");
-  const autor = autores.find(a => a.autor_id === id);
+  const autor = libros.find(l => l.autor === id);
   if (!autor) return;
 
-  document.getElementById("autor-nombre").textContent = autor.nombre;
-  document.getElementById("autor-portada").src = autor.portada;
+  imagen.src = autor.portada;
+  container.textContent = id;
 
-  renderLibros(librosDeAutor(id));
+  lista.innerHTML = "";
+  libros
+    .filter(l => l.autor === id)
+    .forEach((l, index) => {
+      const li = document.createElement("li");
+      li.textContent = `${index + 1}. ${l.nombre} — Género: ${l.genero}`;
+      lista.appendChild(li);
+    });
 }
 
-/********************************
- PÁGINA PACK
-********************************/
+// --- Función para cargar pack individual ---
+function cargarPack(id) {
+  const container = document.getElementById("pack-nombre");
+  const imagen = document.getElementById("pack-imagen");
+  const lista = document.getElementById("pack-libros");
 
-function cargarPack() {
-  const id = getParam("id");
-  const pack = packs.find(p => p.pack_id === id);
+  // Imagen y nombre del pack
+  const pack = libros.find(l => l.pack === id);
   if (!pack) return;
 
-  document.getElementById("pack-nombre").textContent = pack.nombre;
-  document.getElementById("pack-portada").src = pack.portada;
+  imagen.src = pack.portada || "";
+  container.textContent = id;
 
-  renderLibros(librosDePack(id));
-}
-
-/********************************
- PÁGINA GÉNERO
-********************************/
-
-function cargarGenero() {
-  const genero = getParam("nombre");
-  if (!genero) return;
-
-  document.getElementById("genero-nombre").textContent = genero;
-
-  const filtrados = libros.filter(l => l.genero === genero);
-  renderLibros(filtrados);
-}
-
-/********************************
- BUSCADOR
-********************************/
-
-function activarBuscador() {
-  const input = document.getElementById("buscador");
-  if (!input) return;
-
-  input.addEventListener("input", () => {
-    const q = input.value.toLowerCase();
-
-    const resultados = libros.filter(l => {
-      const autor = autores.find(a => a.autor_id === l.autor_id);
-      return (
-        l.titulo.toLowerCase().includes(q) ||
-        l.genero.toLowerCase().includes(q) ||
-        autor?.nombre.toLowerCase().includes(q)
-      );
+  lista.innerHTML = "";
+  libros
+    .filter(l => l.pack && l.pack.includes(id))
+    .forEach((l, index) => {
+      const li = document.createElement("li");
+      li.textContent = `${index + 1}. ${l.nombre} — Autor: ${l.autor} — Género: ${l.genero}`;
+      lista.appendChild(li);
     });
+}
 
-    renderLibros(resultados);
+// --- Función para cargar género individual ---
+function cargarGenero(id) {
+  const container = document.getElementById("genero-nombre");
+  const imagen = document.getElementById("genero-imagen");
+  const lista = document.getElementById("genero-libros");
+
+  const ejemplo = libros.find(l => l.genero === id);
+  if (!ejemplo) return;
+
+  imagen.src = ejemplo.portada || "";
+  container.textContent = id;
+
+  lista.innerHTML = "";
+  libros
+    .filter(l => l.genero === id)
+    .forEach((l, index) => {
+      const li = document.createElement("li");
+      li.textContent = `${index + 1}. ${l.nombre} — Autor: ${l.autor} — Pack: ${l.pack || ""}`;
+      lista.appendChild(li);
+    });
+}
+
+// --- Buscador simple ---
+const input = document.getElementById("buscador");
+if (input) {
+  input.addEventListener("input", function() {
+    const term = this.value.toLowerCase();
+    const resultados = document.getElementById("resultados");
+    resultados.innerHTML = "";
+    libros
+      .filter(l => l.nombre.toLowerCase().includes(term) || l.autor.toLowerCase().includes(term) || l.genero.toLowerCase().includes(term))
+      .slice(0, 5)
+      .forEach(l => {
+        const div = document.createElement("div");
+        div.textContent = `${l.nombre} — ${l.autor} — ${l.genero}`;
+        resultados.appendChild(div);
+      });
   });
 }
 
-/********************************
- INIT
-********************************/
-
-document.addEventListener("DOMContentLoaded", cargarDatos);
+window.addEventListener("DOMContentLoaded", obtenerDatos);
