@@ -1,0 +1,163 @@
+/* RESET */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  background: #f4f6f8;
+  color: #222;
+}
+
+/* HEADER */
+.header {
+  background: #1e1e2f;
+  color: white;
+  padding: 20px;
+  position: relative;
+}
+
+.header h1 {
+  font-size: 28px;
+}
+
+.volver {
+  display: inline-block;
+  margin-top: 10px;
+  color: #ffd369;
+  text-decoration: none;
+}
+
+/* BUSCADOR */
+.buscador {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  width: 280px;
+}
+
+.buscador input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+}
+
+#resultados {
+  background: white;
+  border-radius: 6px;
+  margin-top: 5px;
+  max-height: 250px;
+  overflow-y: auto;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+#resultados div {
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+#resultados div:hover {
+  background: #eee;
+}
+
+/* LAYOUT PRINCIPAL */
+.main-layout {
+  display: flex;
+  padding: 20px;
+  gap: 20px;
+}
+
+/* AUTORES */
+.autores-col {
+  width: 20%;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  height: calc(100vh - 160px);
+  overflow-y: auto;
+}
+
+.autores-col h2 {
+  margin-bottom: 10px;
+}
+
+.autores-col a {
+  display: block;
+  padding: 6px 0;
+  color: #1e1e2f;
+  text-decoration: none;
+}
+
+.autores-col a:hover {
+  text-decoration: underline;
+}
+
+/* SLIDER */
+.slider-container {
+  width: 80%;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.slider {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+}
+
+.slider img {
+  width: 220px;
+  height: 320px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* PÁGINAS DETALLE */
+.detalle-layout {
+  display: flex;
+  padding: 30px;
+  gap: 30px;
+}
+
+.detalle-imagen img {
+  width: 260px;
+  border-radius: 10px;
+}
+
+.detalle-info {
+  flex: 1;
+}
+
+.detalle-info h2 {
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+
+/* LISTA DE LIBROS */
+.lista-libros {
+  padding-left: 20px;
+}
+
+.lista-libros li {
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+/* FOOTER */
+footer {
+  background: #1e1e2f;
+  color: white;
+  padding: 20px;
+  text-align: center;
+  margin-top: 40px;
+}
+
+.footer-links {
+  margin-top: 10px;
+}
+
+.footer-links a {
