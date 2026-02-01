@@ -1,143 +1,163 @@
 // --- Configuración de Google Sheet ---
-const sheetID = "1WPEc9hzG7iaNQMaIQBc4Qth08Zc1R_vvKl9CUnd_jJE";
-const sheetName = "Sheet1";
+const DATA_URL = "data.json";
 
-let libros = [];
-let autores = [];
-
-// --- Función para obtener datos de Google Sheets ---
-async function obtenerDatos() {
-  const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?sheet=${sheetName}`;
-  const res = await axios.get(url);
-  const data = JSON.parse(res.data.substring(47).slice(0, -2)).table.rows;
-  
-  libros = data.map(r => ({
-    id: r.c[0]?.v || "",
-    autor: r.c[1]?.v || "",
-    genero: r.c[2]?.v || "",
-    nombre: r.c[3]?.v || "",
-    portada: r.c[4]?.v || ""
-  }));
-
-  // Lista única de autores
-  const autorSet = new Set(libros.map(l => l.autor));
-  autores = Array.from(autorSet).sort();
-
-  cargarListaAutores();
-  cargarSlider();
+/* =====================
+   CARGA DE DATOS
+===================== */
+async function loadData() {
+  const res = await fetch(DATA_URL);
+  return await res.json();
 }
 
-// --- Lista de autores en index.html ---
-function cargarListaAutores() {
-  const lista = document.getElementById("lista-autores");
-  if (!lista) return;
+/* =====================
+   UTILIDADES
+===================== */
+function getParam(name) {
+  return new URLSearchParams(window.location.search).get(name);
+}
 
-  lista.innerHTML = "";
-  autores.forEach(a => {
-    const link = document.createElement("a");
-    link.href = `autor.html?id=${a}`;
-    link.textContent = a;
-    lista.appendChild(link);
+/* =====================
+   INDEX - LISTADO GENERAL
+===================== */
+async function renderIndex() {
+  const data = await loadData();
+  const container = document.getElementById("content");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  data.autors.forEach(autor => {
+    const librosAutor = data.libros.filter(
+      l => l.autor_id === autor.autor_id
+    );
+
+    if (librosAutor.length === 0) return;
+
+    const section = document.createElement("section");
+    section.className = "block";
+
+    section.innerHTML = `
+      <img src="${autor.portada}" class="block-img">
+      <div class="block-content">
+        <h2>
+          <a href="autor.html?id=${autor.autor_id}">
+            ${autor.nombre}
+          </a>
+        </h2>
+        <ul>
+          ${librosAutor.map((libro, i) => `
+            <li>${i + 1}. ${libro.titulo} (${libro.paginas} págs)</li>
+          `).join("")}
+        </ul>
+      </div>
+    `;
+
+    container.appendChild(section);
   });
 }
 
-// --- Slider de libros/packs en index.html ---
-function cargarSlider() {
-  const slider = document.getElementById("slider-principal");
-  if (!slider) return;
+/* =====================
+   AUTOR
+===================== */
+async function renderAutor() {
+  const autorId = getParam("id");
+  if (!autorId) return;
 
-  slider.innerHTML = "";
-  libros.slice(0, 5).forEach(l => {
-    const img = document.createElement("img");
-    img.src = l.portada;
-    img.alt = l.nombre;
-    slider.appendChild(img);
-  });
-}
-
-// --- Función para cargar autor individual ---
-function cargarAutor(id) {
-  const container = document.getElementById("autor-nombre");
-  const imagen = document.getElementById("autor-imagen");
-  const lista = document.getElementById("autor-libros");
-
-  const autor = libros.find(l => l.autor === id);
+  const data = await loadData();
+  const autor = data.autors.find(a => a.autor_id === autorId);
   if (!autor) return;
 
-  imagen.src = autor.portada;
-  container.textContent = id;
+  const libros = data.libros.filter(l => l.autor_id === autorId);
 
-  lista.innerHTML = "";
-  libros
-    .filter(l => l.autor === id)
-    .forEach((l, index) => {
-      const li = document.createElement("li");
-      li.textContent = `${index + 1}. ${l.nombre} — Género: ${l.genero}`;
-      lista.appendChild(li);
-    });
+  document.getElementById("content").innerHTML = `
+    <section class="block">
+      <img src="${autor.portada}" class="block-img">
+      <div class="block-content">
+        <h1>${autor.nombre}</h1>
+        <ul>
+          ${libros.map((libro, i) => `
+            <li>
+              ${i + 1}. ${libro.titulo}
+              <span class="pages">(${libro.paginas} págs)</span>
+            </li>
+          `).join("")}
+        </ul>
+      </div>
+    </section>
+  `;
 }
 
-// --- Función para cargar pack individual ---
-function cargarPack(id) {
-  const container = document.getElementById("pack-nombre");
-  const imagen = document.getElementById("pack-imagen");
-  const lista = document.getElementById("pack-libros");
+/* =====================
+   PACK
+===================== */
+async function renderPack() {
+  const packId = getParam("id");
+  if (!packId) return;
 
-  // Imagen y nombre del pack
-  const pack = libros.find(l => l.pack === id);
+  const data = await loadData();
+  const pack = data.packs.find(p => p.pack_id === packId);
   if (!pack) return;
 
-  imagen.src = pack.portada || "";
-  container.textContent = id;
+  const relaciones = data.libro_pack.filter(lp => lp.pack_id === packId);
+  const libros = relaciones
+    .map(r => data.libros.find(l => l.libro_id === r.libro_id))
+    .filter(Boolean);
 
-  lista.innerHTML = "";
-  libros
-    .filter(l => l.pack && l.pack.includes(id))
-    .forEach((l, index) => {
-      const li = document.createElement("li");
-      li.textContent = `${index + 1}. ${l.nombre} — Autor: ${l.autor} — Género: ${l.genero}`;
-      lista.appendChild(li);
-    });
+  document.getElementById("content").innerHTML = `
+    <section class="block">
+      <img src="${pack.portada}" class="block-img">
+      <div class="block-content">
+        <h1>${pack.nombre}</h1>
+        <ul>
+          ${libros.map((libro, i) => `
+            <li>
+              ${i + 1}. ${libro.titulo}
+              <span class="pages">(${libro.paginas} págs)</span>
+            </li>
+          `).join("")}
+        </ul>
+      </div>
+    </section>
+  `;
 }
 
-// --- Función para cargar género individual ---
-function cargarGenero(id) {
-  const container = document.getElementById("genero-nombre");
-  const imagen = document.getElementById("genero-imagen");
-  const lista = document.getElementById("genero-libros");
+/* =====================
+   GÉNERO
+===================== */
+async function renderGenero() {
+  const genero = getParam("nombre");
+  if (!genero) return;
 
-  const ejemplo = libros.find(l => l.genero === id);
-  if (!ejemplo) return;
+  const data = await loadData();
+  const libros = data.libros.filter(l => l.genero === genero);
 
-  imagen.src = ejemplo.portada || "";
-  container.textContent = id;
+  if (libros.length === 0) return;
 
-  lista.innerHTML = "";
-  libros
-    .filter(l => l.genero === id)
-    .forEach((l, index) => {
-      const li = document.createElement("li");
-      li.textContent = `${index + 1}. ${l.nombre} — Autor: ${l.autor} — Pack: ${l.pack || ""}`;
-      lista.appendChild(li);
-    });
+  document.getElementById("content").innerHTML = `
+    <section class="block">
+      <img src="img/genero.png" class="block-img">
+      <div class="block-content">
+        <h1>${genero}</h1>
+        <ul>
+          ${libros.map((libro, i) => `
+            <li>
+              ${i + 1}. ${libro.titulo}
+              <span class="pages">(${libro.paginas} págs)</span>
+            </li>
+          `).join("")}
+        </ul>
+      </div>
+    </section>
+  `;
 }
 
-// --- Buscador simple ---
-const input = document.getElementById("buscador");
-if (input) {
-  input.addEventListener("input", function() {
-    const term = this.value.toLowerCase();
-    const resultados = document.getElementById("resultados");
-    resultados.innerHTML = "";
-    libros
-      .filter(l => l.nombre.toLowerCase().includes(term) || l.autor.toLowerCase().includes(term) || l.genero.toLowerCase().includes(term))
-      .slice(0, 5)
-      .forEach(l => {
-        const div = document.createElement("div");
-        div.textContent = `${l.nombre} — ${l.autor} — ${l.genero}`;
-        resultados.appendChild(div);
-      });
-  });
-}
+/* =====================
+   INIT
+===================== */
+document.addEventListener("DOMContentLoaded", () => {
+  if (document.body.classList.contains("index")) renderIndex();
+  if (document.body.classList.contains("autor")) renderAutor();
+  if (document.body.classList.contains("pack")) renderPack();
+  if (document.body.classList.contains("genero")) renderGenero();
+});
 
-window.addEventListener("DOMContentLoaded", obtenerDatos);
