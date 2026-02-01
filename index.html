@@ -1,166 +1,182 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Catálogo de Libros</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>CatÃ¡logo de Libros</title>
 
-<style>
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #f4f4f4;
-}
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
 
-header {
-  background: #2c3e50;
-  color: white;
-  text-align: center;
-  padding: 20px;
-}
+    /* ===== HEADER ===== */
+    header {
+      padding: 20px;
+      border-bottom: 1px solid #ddd;
+    }
 
-.buscador {
-  padding: 15px;
-  text-align: center;
-  background: #ecf0f1;
-}
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-.buscador input {
-  width: 90%;
-  max-width: 500px;
-  padding: 10px;
-  font-size: 16px;
-}
+    h1 {
+      margin: 0;
+    }
 
-.seccion {
-  max-width: 1200px;
-  margin: auto;
-  padding: 20px;
-}
+    #buscador {
+      padding: 8px;
+      width: 220px;
+      font-size: 14px;
+    }
 
-.catalogo {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
-}
+    /* ===== LAYOUT PRINCIPAL ===== */
+    .contenedor {
+      display: flex;
+      height: 500px;
+    }
 
-.card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  overflow: hidden;
-}
+    /* ===== AUTORES ===== */
+    aside.autores {
+      width: 20%;
+      border-right: 1px solid #ddd;
+      padding: 15px;
+      overflow-y: auto;
+    }
 
-.card img {
-  width: 100%;
-  height: 300px;
-  object-fit: cover;
-}
+    aside.autores h3 {
+      margin-top: 0;
+    }
 
-.info {
-  padding: 15px;
-}
+    #lista-autores {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
 
-.info h3 {
-  margin: 0 0 5px;
-}
+    #lista-autores li {
+      margin: 6px 0;
+      cursor: pointer;
+      color: #0066cc;
+    }
 
-.meta {
-  font-size: 13px;
-  color: #666;
-}
+    #lista-autores li:hover {
+      text-decoration: underline;
+    }
 
-footer {
-  text-align: center;
-  padding: 15px;
-  background: #ddd;
-}
-</style>
+    /* ===== SLIDER ===== */
+    .slider-container {
+      width: 80%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide {
+      display: none;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+
+    .slide.active {
+      display: block;
+    }
+
+    .slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .slide-info {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.6);
+      color: white;
+      padding: 15px;
+      border-radius: 5px;
+      max-width: 70%;
+    }
+
+    /* ===== RESULTADOS BUSCADOR ===== */
+    #resultados {
+      position: absolute;
+      right: 20px;
+      top: 95px;
+      background: white;
+      border: 1px solid #ccc;
+      padding: 10px;
+      width: 250px;
+      z-index: 1000;
+    }
+
+    #resultados div {
+      padding: 4px 0;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+    }
+
+    #resultados div:last-child {
+      border-bottom: none;
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      padding: 15px;
+      text-align: center;
+      border-top: 1px solid #ddd;
+      font-size: 14px;
+    }
+
+    footer a {
+      margin: 0 8px;
+      text-decoration: none;
+      color: #0066cc;
+    }
+  </style>
 </head>
 
 <body>
 
-<header>
-  <h1>?? Catálogo de Libros</h1>
-  <p>Buscá por libro, autor o género</p>
-</header>
-
-<div class="buscador">
-  <input type="text" id="buscador" placeholder="Buscar libro, autor o género...">
-</div>
-
-<section class="seccion">
-<div class="catalogo" id="catalogo">
-
-  <div class="card libro"
-       data-titulo="el principito"
-       data-autor="antoine de saint-exupery"
-       data-genero="clasico">
-    <img src="https://via.placeholder.com/300x450?text=El+Principito">
-    <div class="info">
-      <h3>El Principito</h3>
-      <div class="meta">Antoine de Saint-Exupéry · Clásico</div>
+  <!-- ===== HEADER ===== -->
+  <header>
+    <div class="header-top">
+      <h1>CatÃ¡logo de Libros</h1>
+      <input type="text" id="buscador" placeholder="Buscador">
     </div>
+  </header>
+
+  <!-- ===== CONTENIDO PRINCIPAL ===== -->
+  <div class="contenedor">
+
+    <!-- COLUMNA AUTORES -->
+    <aside class="autores">
+      <h3>Autores</h3>
+      <ul id="lista-autores">
+        <!-- Se genera desde Google Sheets -->
+      </ul>
+    </aside>
+
+    <!-- SLIDER -->
+    <section class="slider-container" id="slider">
+      <!-- Se genera desde Google Sheets (packs / destacados) -->
+    </section>
+
   </div>
 
-  <div class="card libro"
-       data-titulo="1984"
-       data-autor="george orwell"
-       data-genero="ciencia ficcion">
-    <img src="https://via.placeholder.com/300x450?text=1984">
-    <div class="info">
-      <h3>1984</h3>
-      <div class="meta">George Orwell · Ciencia ficción</div>
-    </div>
-  </div>
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    ðŸ“§ contacto@tudominio.com |
+    <a href="#" target="_blank">Facebook</a>
+    <a href="#" target="_blank">Instagram</a>
+    <a href="#" target="_blank">TikTok</a>
+  </footer>
 
-  <div class="card libro"
-       data-titulo="fahrenheit 451"
-       data-autor="ray bradbury"
-       data-genero="ciencia ficcion">
-    <img src="https://via.placeholder.com/300x450?text=Fahrenheit+451">
-    <div class="info">
-      <h3>Fahrenheit 451</h3>
-      <div class="meta">Ray Bradbury · Ciencia ficción</div>
-    </div>
-  </div>
-
-</div>
-</section>
-
-<footer>
-© 2026 – Catálogo de Libros
-</footer>
-
-<script>
-// normaliza texto (quita acentos y mayúsculas)
-function normalizar(texto) {
-  return texto
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-}
-
-const input = document.getElementById("buscador");
-const libros = document.querySelectorAll(".libro");
-
-input.addEventListener("input", () => {
-  const busqueda = normalizar(input.value);
-
-  libros.forEach(libro => {
-    const textoLibro = normalizar(
-      libro.dataset.titulo +
-      " " +
-      libro.dataset.autor +
-      " " +
-      libro.dataset.genero
-    );
-
-    libro.style.display =
-      textoLibro.includes(busqueda) ? "block" : "none";
-  });
-});
-</script>
+  <!-- ===== APP JS ===== -->
+  <script src="js/app.js"></script>
 
 </body>
 </html>
