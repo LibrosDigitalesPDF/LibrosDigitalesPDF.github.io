@@ -8,33 +8,35 @@
         :root { --primary: #2c3e50; --accent: #27ae60; --bg: #f4f4f4; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #333; }
         
-        /* HEADER DISEÑO ORIGINAL */
+        /* HEADER ESTABLE */
         header { 
             background: var(--primary); 
             color: white; 
-            padding: 20px 40px; 
+            padding: 15px 40px; 
             display: flex; 
             justify-content: space-between; 
             align-items: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            position: relative; z-index: 100; /* Asegura que el header esté arriba */
         }
-        .brand-container { display: flex; flex-direction: column; gap: 12px; }
+        .brand-container { display: flex; flex-direction: column; gap: 8px; }
         .logo-name { display: flex; align-items: center; gap: 15px; }
         
-        /* Estilo del Logo */
+        /* Logo Fijo */
         #logo-sitio { 
-            height: 65px; 
+            height: 60px; 
             width: auto; 
             border-radius: 8px; 
             background: white; 
             padding: 2px;
+            display: block; /* Evita comportamientos extraños de línea */
         }
 
-        .logo-name h1 { margin: 0; font-size: 1.7rem; }
+        .logo-name h1 { margin: 0; font-size: 1.6rem; }
         
-        .social-links { display: flex; flex-wrap: wrap; gap: 18px; }
-        .social-links a { color: #ecf0f1; text-decoration: none; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; transition: 0.3s; }
-        .social-links a:hover { color: var(--accent); transform: translateY(-2px); }
+        .social-links { display: flex; flex-wrap: wrap; gap: 15px; }
+        .social-links a { color: #ecf0f1; text-decoration: none; font-size: 0.8rem; display: flex; align-items: center; gap: 5px; transition: 0.2s; }
+        .social-links a:hover { color: var(--accent); }
 
         /* BUSCADOR */
         .search-container { position: relative; }
@@ -42,32 +44,44 @@
         #resultados-busqueda { 
             position: absolute; top: 45px; right: 0; width: 320px; 
             background: white; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); 
-            max-height: 450px; overflow-y: auto; z-index: 1000; display: none;
+            max-height: 400px; overflow-y: auto; z-index: 200; display: none;
         }
         .res-item { padding: 10px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 12px; text-decoration: none; color: #333; }
         .res-item:hover { background: #f1f1f1; }
-        .res-item img { width: 45px; height: 60px; object-fit: cover; border-radius: 4px; background: #eee; }
-        .res-info b { display: block; font-size: 0.95rem; margin-bottom: 2px; }
-        .res-info span { font-size: 0.75rem; color: var(--accent); font-weight: bold; text-transform: uppercase; }
-
+        .res-item img { width: 40px; height: 55px; object-fit: cover; border-radius: 4px; background: #ddd; }
+        
         /* LAYOUT */
         .main-layout { display: flex; max-width: 1400px; margin: 30px auto; gap: 30px; padding: 0 20px; }
-        .sidebar { flex: 0 0 20%; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .sidebar h3 { margin-top: 0; color: var(--primary); border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
-        .author-link { display: block; padding: 10px 0; color: #555; text-decoration: none; border-bottom: 1px solid #f9f9f9; transition: 0.2s; }
+        .sidebar { flex: 0 0 20%; background: white; padding: 20px; border-radius: 12px; height: fit-content; }
+        .author-link { display: block; padding: 8px 0; color: #555; text-decoration: none; border-bottom: 1px solid #f9f9f9; }
         .author-link:hover { color: var(--accent); padding-left: 5px; }
 
+        /* SLIDER SIN PARPADEO */
         .content { flex: 1; display: flex; justify-content: center; }
-        .slider-container { width: 320px; height: 520px; position: relative; overflow: hidden; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); background: white; }
-        .slide { position: absolute; width: 100%; height: 100%; opacity: 0; transition: opacity 1.2s ease-in-out; display: flex; flex-direction: column; text-align: center; text-decoration: none; color: inherit; }
-        .slide.active { opacity: 1; z-index: 10; }
-        .slide img { width: 100%; height: 78%; object-fit: cover; }
-        .slide-info { padding: 15px; background: white; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
-        
+        .slider-container { 
+            width: 320px; height: 520px; 
+            position: relative; overflow: hidden; 
+            border-radius: 20px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
+            background: #e0e0e0; /* Fondo gris para evitar flashes blancos */
+        }
+        .slide { 
+            position: absolute; width: 100%; height: 100%; 
+            opacity: 0; 
+            transition: opacity 0.8s ease-in-out; /* Transición más suave */
+            display: flex; flex-direction: column; 
+            text-align: center; text-decoration: none; color: inherit;
+            background: white;
+            pointer-events: none; /* Desactiva clics en slides ocultos */
+        }
+        .slide.active { opacity: 1; z-index: 10; pointer-events: all; }
+        .slide img { width: 100%; height: 78%; object-fit: cover; background: #ccc; }
+        .slide-info { padding: 15px; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; }
+
         @media (max-width: 900px) {
-            header { flex-direction: column; gap: 20px; text-align: center; }
+            header { flex-direction: column; gap: 15px; text-align: center; }
             .main-layout { flex-direction: column; }
-            .sidebar { flex: 1; }
+            .sidebar { width: 100%; box-sizing: border-box; }
         }
     </style>
 </head>
@@ -76,7 +90,7 @@
 <header>
     <div class="brand-container">
         <div class="logo-name">
-            <img src="logo.jpeg" alt="Logo" id="logo-sitio" onerror="this.src='https://via.placeholder.com/60?text=Logo'">
+            <img src="logo.png" alt="Logo" id="logo-sitio" onerror="this.src='https://via.placeholder.com/150x50?text=Logo'">
             <h1>Mi Biblioteca Digital</h1>
         </div>
         <div class="social-links">
@@ -94,7 +108,7 @@
 
 <div class="main-layout">
     <aside class="sidebar">
-        <h3>Autores</h3>
+        <h3 style="margin-top:0; color:var(--primary); border-bottom:2px solid var(--accent); padding-bottom:10px;">Autores</h3>
         <div id="lista-autores">Cargando...</div>
     </aside>
     <main class="content">
@@ -106,55 +120,68 @@
     const API = "https://script.google.com/macros/s/AKfycbxR9owUKbqXlUj3-hDYZKnFSxHqr1ZHl42z30kWREzJvFhHYwFShP1up5RPm8tuG_RC/exec";
     let baseDeDatos = {};
 
+    // FUNCIÓN MÁGICA: Arregla los links de Google Drive automáticamente
+    function arreglarLinkImagen(url) {
+        if (!url) return 'https://via.placeholder.com/320x520?text=Sin+Imagen';
+        // Si es un link de Drive, extraemos el ID y creamos un link directo
+        if (url.includes('drive.google.com')) {
+            const idMatch = url.match(/\/d\/(.*?)\/|id=(.*?)(&|$)/);
+            const id = idMatch ? (idMatch[1] || idMatch[2]) : null;
+            if (id) return `https://lh3.googleusercontent.com/d/${id}`; // Link de alta velocidad
+        }
+        return url;
+    }
+
     async function cargarDatos() {
         try {
             const res = await fetch(API);
             baseDeDatos = await res.json();
 
-            // Renderizar Sidebar
+            // 1. Sidebar Autores
             const autoresSorted = baseDeDatos.autores.sort((a,b) => a.nombre.localeCompare(b.nombre));
             document.getElementById('lista-autores').innerHTML = autoresSorted.map(a => 
                 `<a href="detalle.html?tipo=autor&id=${a.autor_id}" class="author-link">${a.nombre}</a>`
             ).join('');
 
-            // Renderizar Slider
-            renderSlider();
+            // 2. Slider (Con corrección de imágenes)
+            const slider = document.getElementById('slider');
+            slider.innerHTML = baseDeDatos.slider.map((conf, index) => {
+                let item, nombre, rawPortada, cantidad, link;
+                
+                if (conf.tipo === 'libro') {
+                    item = baseDeDatos.libros.find(l => l.libro_id == conf.ref_id);
+                    nombre = item?.titulo; rawPortada = item?.portada; cantidad = "1 libro";
+                    link = `detalle.html?tipo=autor&id=${item?.autor_id}`;
+                } else if (conf.tipo === 'autor') {
+                    item = baseDeDatos.autores.find(a => a.autor_id == conf.ref_id);
+                    nombre = item?.nombre; rawPortada = item?.portada;
+                    cantidad = `${baseDeDatos.libros.filter(l => l.autor_id == conf.ref_id).length} libros`;
+                    link = `detalle.html?tipo=autor&id=${conf.ref_id}`;
+                } else if (conf.tipo === 'pack') {
+                    item = baseDeDatos.packs.find(p => p.pack_id == conf.ref_id);
+                    nombre = item?.nombre; rawPortada = item?.portada;
+                    const total = baseDeDatos.libro_packs.filter(rp => rp.pack_id == conf.ref_id).length;
+                    cantidad = `${total} libros`;
+                    link = `detalle.html?tipo=pack&id=${conf.ref_id}`;
+                }
 
-        } catch (error) {
-            console.error("Error cargando API:", error);
-        }
+                if (!nombre) return '';
+                
+                // Usamos la función para arreglar el link
+                const portadaFinal = arreglarLinkImagen(rawPortada);
+
+                return `<a href="${link}" class="slide ${index === 0 ? 'active' : ''}">
+                    <img src="${portadaFinal}" onerror="this.src='https://via.placeholder.com/320x520?text=Error+Carga'">
+                    <div class="slide-info"><h2>${nombre}</h2><p>${cantidad}</p></div>
+                </a>`;
+            }).join('');
+
+            iniciarSlider();
+
+        } catch (error) { console.error(error); }
     }
 
-    function renderSlider() {
-        const slider = document.getElementById('slider');
-        slider.innerHTML = baseDeDatos.slider.map((conf, index) => {
-            let item, nombre, portada, cantidad, link;
-            if (conf.tipo === 'libro') {
-                item = baseDeDatos.libros.find(l => l.libro_id == conf.ref_id);
-                nombre = item?.titulo; portada = item?.portada; cantidad = "1 libro";
-                link = `detalle.html?tipo=autor&id=${item?.autor_id}`;
-            } else if (conf.tipo === 'autor') {
-                item = baseDeDatos.autores.find(a => a.autor_id == conf.ref_id);
-                nombre = item?.nombre; portada = item?.portada;
-                cantidad = `${baseDeDatos.libros.filter(l => l.autor_id == conf.ref_id).length} libros`;
-                link = `detalle.html?tipo=autor&id=${conf.ref_id}`;
-            } else if (conf.tipo === 'pack') {
-                item = baseDeDatos.packs.find(p => p.pack_id == conf.ref_id);
-                nombre = item?.nombre; portada = item?.portada;
-                const total = baseDeDatos.libro_packs.filter(rp => rp.pack_id == conf.ref_id).length;
-                cantidad = `${total} libros`;
-                link = `detalle.html?tipo=pack&id=${conf.ref_id}`;
-            }
-            if (!nombre) return '';
-            return `<a href="${link}" class="slide ${index === 0 ? 'active' : ''}">
-                <img src="${portada}" onerror="this.src='https://via.placeholder.com/320x520?text=Imagen'">
-                <div class="slide-info"><h2>${nombre}</h2><p>${cantidad}</p></div>
-            </a>`;
-        }).join('');
-        iniciarSlider();
-    }
-
-    // BUSCADOR INTELIGENTE (Tolerante a errores y acentos)
+    // Buscador
     document.getElementById('buscador').addEventListener('input', function(e) {
         const input = e.target.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         const resDiv = document.getElementById('resultados-busqueda');
@@ -163,40 +190,32 @@
 
         let resultados = [];
         
-        // Buscar en Libros
         baseDeDatos.libros.forEach(l => {
             if (l.titulo.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(input)) {
-                resultados.push({ t: l.titulo, p: l.portada, link: `detalle.html?tipo=autor&id=${l.autor_id}`, cat: 'Libro' });
+                resultados.push({ t: l.titulo, p: arreglarLinkImagen(l.portada), link: `detalle.html?tipo=autor&id=${l.autor_id}`, cat: 'Libro' });
             }
         });
-
-        // Buscar en Packs
         baseDeDatos.packs.forEach(pk => {
             if (pk.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(input)) {
-                resultados.push({ t: pk.nombre, p: pk.portada, link: `detalle.html?tipo=pack&id=${pk.pack_id}`, cat: 'Pack' });
+                resultados.push({ t: pk.nombre, p: arreglarLinkImagen(pk.portada), link: `detalle.html?tipo=pack&id=${pk.pack_id}`, cat: 'Pack' });
             }
         });
-
-        // Buscar en Géneros
         const generos = [...new Set(baseDeDatos.libros.map(l => l.genero))];
         generos.forEach(g => {
             if (g && g.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(input)) {
-                const imgG = baseDeDatos.libros.find(l => l.genero === g).portada;
-                resultados.push({ t: g, p: imgG, link: `detalle.html?tipo=genero&id=${encodeURIComponent(g)}`, cat: 'Género' });
+                const imgG = baseDeDatos.libros.find(l => l.genero === g)?.portada;
+                resultados.push({ t: g, p: arreglarLinkImagen(imgG), link: `detalle.html?tipo=genero&id=${encodeURIComponent(g)}`, cat: 'Género' });
             }
         });
 
         if (resultados.length > 0) {
             resDiv.style.display = 'block';
-            resDiv.innerHTML = resultados.slice(0, 12).map(r => `
+            resDiv.innerHTML = resultados.slice(0, 10).map(r => `
                 <a href="${r.link}" class="res-item">
-                    <img src="${r.p}" onerror="this.src='https://via.placeholder.com/45x60'">
-                    <div class="res-info"><b>${r.t}</b> <span>${r.cat}</span></div>
-                </a>
-            `).join('');
-        } else {
-            resDiv.style.display = 'none';
-        }
+                    <img src="${r.p}">
+                    <div class="res-info"><b>${r.t}</b><span>${r.cat}</span></div>
+                </a>`).join('');
+        } else { resDiv.style.display = 'none'; }
     });
 
     function iniciarSlider() {
@@ -207,10 +226,9 @@
                 slides[curr].classList.remove('active');
                 curr = (curr + 1) % slides.length;
                 slides[curr].classList.add('active');
-            }, 4000);
+            }, 4500); // 4.5 segundos
         }
     }
-
     cargarDatos();
 </script>
 </body>
