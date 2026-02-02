@@ -3,184 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin Pro - Biblioteca</title>
+    <title>Panel Admin - Gestión de Biblioteca</title>
     <style>
         :root { --primary: #2c3e50; --green: #27ae60; --blue: #3498db; --red: #e74c3c; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; color: #333; }
-        .container { max-width: 650px; margin: 0 auto; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 25px; }
-        h1 { text-align: center; color: var(--primary); }
-        h2 { margin-top: 0; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 1.2rem; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); padding: 20px; color: #333; }
+        .container { max-width: 700px; margin: 0 auto; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 25px; border-left: 5px solid transparent; }
+        h1 { text-align: center; color: var(--primary); margin-bottom: 30px; }
+        h2 { margin-top: 0; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 1.25rem; }
         label { display: block; margin: 10px 0 5px; font-weight: bold; font-size: 0.9rem; }
         input, select { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
-        button { width: 100%; padding: 15px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 5px; }
-        button:disabled { background: #ccc !important; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 5px; font-size: 1rem; }
+        button:disabled { background: #ccc !important; cursor: not-allowed; }
         .btn-green { background: var(--green); }
+        .btn-green:hover { background: #219150; }
         .btn-blue { background: var(--blue); }
+        .btn-blue:hover { background: #2980b9; }
         .btn-red { background: var(--red); }
-        .preview-img { width: 80px; height: 110px; object-fit: cover; display: none; margin: 10px auto; border-radius: 5px; border: 1px solid #ddd; }
-        .status { text-align: center; font-weight: bold; color: var(--blue); margin-top: 10px; display: none; }
+        .preview-img { width: 100px; height: 130px; object-fit: cover; display: none; margin: 10px auto; border-radius: 8px; border: 2px solid #eee; }
+        .loading-overlay { display: none; text-align: center; font-weight: bold; color: var(--blue); margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>Panel de Administración</h1>
+    <h1>Panel de Control Biblioteca</h1>
 
-    <div class="card" style="border-left: 5px solid var(--blue);">
-        <h2>+ Registrar Nuevo Autor</h2>
-        <input type="text" id="nombreNuevoAutor" placeholder="Nombre completo del Autor">
+    <div class="card" style="border-color: var(--blue);">
+        <h2>1. Registrar Autor</h2>
+        <input type="text" id="nombreAutor" placeholder="Nombre del Autor">
         <label>Foto del Autor:</label>
         <input type="file" id="fotoAutor" accept="image/*">
         <img id="prevAutor" class="preview-img">
-        <button onclick="guardarAutor(this)" class="btn-blue">REGISTRAR AUTOR</button>
+        <button onclick="guardarAutor(this)" class="btn-blue">GUARDAR AUTOR</button>
     </div>
 
-    <div class="card" style="border-left: 5px solid var(--green);">
-        <h2>+ Subir Nuevo Libro</h2>
+    <div class="card" style="border-color: var(--blue);">
+        <h2>2. Crear Pack</h2>
+        <input type="text" id="nombrePack" placeholder="Nombre del Pack (ej: Saga Harry Potter)">
+        <label>Portada del Pack:</label>
+        <input type="file" id="fotoPack" accept="image/*">
+        <img id="prevPack" class="preview-img">
+        <button onclick="guardarPack(this)" class="btn-blue">GUARDAR PACK</button>
+    </div>
+
+    <div class="card" style="border-color: var(--green);">
+        <h2>3. Subir Libro</h2>
         <input type="text" id="tituloLibro" placeholder="Título del Libro">
-        <select id="autorSelect"><option value="">Cargando autores...</option></select>
+        <select id="selectAutor"><option value="">Cargando autores...</option></select>
         <input type="text" id="generoLibro" placeholder="Género">
         <input type="number" id="paginasLibro" placeholder="Cantidad de Páginas">
         <label>Portada del Libro:</label>
         <input type="file" id="fotoLibro" accept="image/*">
         <img id="prevLibro" class="preview-img">
-        <button onclick="guardarLibro(this)" class="btn-green">GUARDAR LIBRO</button>
+        <button onclick="guardarLibro(this)" class="btn-green">PUBLICAR LIBRO</button>
     </div>
 
-    <div class="card" style="border-left: 5px solid var(--blue);">
-        <h2>+ Crear Nuevo Pack</h2>
-        <input type="text" id="nombrePack" placeholder="Nombre del Pack">
-        <label>Imagen del Pack:</label>
-        <input type="file" id="fotoPack" accept="image/*">
-        <img id="prevPack" class="preview-img">
-        <button onclick="guardarPack(this)" class="btn-blue">CREAR PACK</button>
+    <div class="card" style="border-color: #f1c40f;">
+        <h2>4. Vincular Libro a Pack</h2>
+        <select id="linkPack"><option value="">Seleccionar Pack</option></select>
+        <select id="linkLibro"><option value="">Seleccionar Libro</option></select>
+        <button onclick="vincular(this)" style="background: #f1c40f; color: #333;">VINCULAR AHORA</button>
     </div>
 
-    <div class="card">
-        <h2>+ Vincular Libro a Pack</h2>
-        <select id="selectPack"><option value="">Seleccionar Pack</option></select>
-        <select id="selectLibro"><option value="">Seleccionar Libro</option></select>
-        <button onclick="vincular(this)" class="btn-blue">AÑADIR AL PACK</button>
-    </div>
-
-    <div class="card" style="border-top: 5px solid var(--red);">
-        <h2 style="color: var(--red);">Eliminar Contenido</h2>
-        <select id="tipoEliminar">
+    <div class="card" style="border-color: var(--red);">
+        <h2 style="color: var(--red);">5. Eliminar Elementos</h2>
+        <select id="tipoBorrar">
             <option value="libros">Libro</option>
             <option value="packs">Pack</option>
             <option value="autores">Autor</option>
         </select>
-        <select id="listaEliminar"><option value="">Selecciona elemento...</option></select>
-        <button onclick="eliminarElemento(this)" class="btn-red">ELIMINAR PERMANENTEMENTE</button>
+        <select id="itemBorrar"><option value="">Selecciona qué borrar...</option></select>
+        <button onclick="eliminar(this)" class="btn-red">BORRAR PERMANENTEMENTE</button>
     </div>
 
-    <div id="globalStatus" class="status">Procesando... por favor espera.</div>
+    <div id="status" class="loading-overlay">⏳ Procesando... No cierres la página.</div>
 </div>
 
 <script>
-    // --- SEGURIDAD ---
-    const pass = prompt("Ingresa la clave de administrador:");
-    if (pass !== "Serepasan7") { 
+    // --- CONFIGURACIÓN ---
+    const CLAVE_CORRECTA = "Serepasan7"; // <--- CAMBIA ESTO
+    const API_URL = "https://script.google.com/macros/s/AKfycbxR9owUKbqXlUj3-hDYZKnFSxHqr1ZHl42z30kWREzJvFhHYwFShP1up5RPm8tuG_RC/exec"; // <--- TU URL DE GOOGLE SCRIPT
+
+    // Seguridad
+    const userPass = prompt("Contraseña de administrador:");
+    if (userPass !== CLAVE_CORRECTA) {
         alert("Acceso denegado");
-        document.body.innerHTML = "<h1 style='text-align:center; margin-top:100px;'>Acceso Restringido</h1>";
-        throw new Error("No autorizado");
+        document.body.innerHTML = "<h1>No autorizado</h1>";
+        throw new Error("Acceso denegado");
     }
 
-    const API_URL = "https://script.google.com/macros/s/AKfycbxR9owUKbqXlUj3-hDYZKnFSxHqr1ZHl42z30kWREzJvFhHYwFShP1up5RPm8tuG_RC/exec"; 
+    // --- CARGA DE DATOS ---
+    async function cargar() {
+        try {
+            const res = await fetch(API_URL);
+            const data = await res.json();
+            
+            const llenarSelect = (id, lista, idKey, txtKey) => {
+                const s = document.getElementById(id);
+                s.innerHTML = '<option value="">Seleccionar...</option>';
+                lista.sort((a,b) => String(a[txtKey] || a.titulo).localeCompare(String(b[txtKey] || b.titulo)))
+                     .forEach(item => s.innerHTML += `<option value="${item[idKey]}">${item[txtKey] || item.titulo || item.nombre}</option>`);
+            };
 
-    async function actualizarListas() {
-        const res = await fetch(API_URL);
-        const data = await res.json();
-        const fill = (id, list, kId, kName) => {
-            const el = document.getElementById(id);
-            el.innerHTML = '<option value="">Seleccionar...</option>';
-            list.sort((a,b) => String(a[kName]).localeCompare(String(b[kName])))
-                .forEach(i => el.innerHTML += `<option value="${i[kId]}">${i[kName] || i.titulo || i.nombre}</option>`);
-        };
-        fill('autorSelect', data.autores, 'autor_id', 'nombre');
-        fill('selectPack', data.packs, 'pack_id', 'nombre');
-        fill('selectLibro', data.libros, 'libro_id', 'titulo');
-        const tipo = document.getElementById('tipoEliminar').value;
-        fill('listaEliminar', data[tipo], (tipo === 'libros' ? 'libro_id' : (tipo === 'packs' ? 'pack_id' : 'autor_id')), (tipo === 'libros' ? 'titulo' : 'nombre'));
+            llenarSelect('selectAutor', data.autores, 'autor_id', 'nombre');
+            llenarSelect('linkPack', data.packs, 'pack_id', 'nombre');
+            llenarSelect('linkLibro', data.libros, 'libro_id', 'titulo');
+            
+            actualizarListaBorrar(data);
+        } catch (e) { console.error("Error cargando datos:", e); }
     }
 
-    document.getElementById('tipoEliminar').onchange = actualizarListas;
+    function actualizarListaBorrar(data) {
+        const tipo = document.getElementById('tipoBorrar').value;
+        const idKey = tipo === 'libros' ? 'libro_id' : (tipo === 'packs' ? 'pack_id' : 'autor_id');
+        const txtKey = tipo === 'libros' ? 'titulo' : 'nombre';
+        
+        const s = document.getElementById('itemBorrar');
+        s.innerHTML = '<option value="">Seleccionar elemento...</option>';
+        if(data && data[tipo]) {
+            data[tipo].forEach(item => s.innerHTML += `<option value="${item[idKey]}">${item[txtKey]}</option>`);
+        }
+    }
 
-    async function enviar(payload, btn) {
+    // --- FUNCIONES DE ENVÍO ---
+    async function apiPost(payload, btn) {
         btn.disabled = true;
-        document.getElementById('globalStatus').style.display = 'block';
+        document.getElementById('status').style.display = 'block';
         await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        alert("Operación exitosa");
+        alert("✅ Hecho con éxito");
         location.reload();
     }
 
-    function procesarConFoto(fileInput, extraData, btn) {
-        const file = fileInput.files[0];
-        if(!file) return alert("Falta seleccionar la imagen");
+    function leerImagen(input, callback) {
+        const file = input.files[0];
+        if(!file) return callback("");
         const reader = new FileReader();
+        reader.onload = () => callback(reader.result, file.type, file.name);
         reader.readAsDataURL(file);
-        reader.onload = () => {
-            enviar({
-                ...extraData,
-                imagenBase64: reader.result,
-                mimeType: file.type,
-                nombreArchivo: file.name
-            }, btn);
-        };
     }
 
     function guardarAutor(btn) {
-        procesarConFoto(document.getElementById('fotoAutor'), {
-            accion: "nuevo_autor",
-            nombre: document.getElementById('nombreNuevoAutor').value
-        }, btn);
-    }
-
-    function guardarLibro(btn) {
-        procesarConFoto(document.getElementById('fotoLibro'), {
-            accion: "nuevo_libro",
-            titulo: document.getElementById('tituloLibro').value,
-            autorId: document.getElementById('autorSelect').value,
-            genero: document.getElementById('generoLibro').value,
-            paginas: document.getElementById('paginasLibro').value
-        }, btn);
+        leerImagen(document.getElementById('fotoAutor'), (base64, type, name) => {
+            if(!base64) return alert("Falta la foto");
+            apiPost({ accion: "nuevo_autor", nombre: document.getElementById('nombreAutor').value, imagenBase64: base64, mimeType: type, nombreArchivo: name }, btn);
+        });
     }
 
     function guardarPack(btn) {
-        procesarConFoto(document.getElementById('fotoPack'), {
-            accion: "nuevo_pack",
-            nombre: document.getElementById('nombrePack').value
-        }, btn);
+        leerImagen(document.getElementById('fotoPack'), (base64, type, name) => {
+            if(!base64) return alert("Falta la foto");
+            apiPost({ accion: "nuevo_pack", nombre: document.getElementById('nombrePack').value, imagenBase64: base64, mimeType: type, nombreArchivo: name }, btn);
+        });
+    }
+
+    function guardarLibro(btn) {
+        leerImagen(document.getElementById('fotoLibro'), (base64, type, name) => {
+            if(!base64) return alert("Falta la portada");
+            apiPost({
+                accion: "nuevo_libro",
+                titulo: document.getElementById('tituloLibro').value,
+                autorId: document.getElementById('selectAutor').value,
+                genero: document.getElementById('generoLibro').value,
+                paginas: document.getElementById('paginasLibro').value,
+                imagenBase64: base64, mimeType: type, nombreArchivo: name
+            }, btn);
+        });
     }
 
     function vincular(btn) {
-        enviar({ accion: "asociar_pack", packId: document.getElementById('selectPack').value, libroId: document.getElementById('selectLibro').value }, btn);
+        apiPost({ accion: "asociar_pack", packId: document.getElementById('linkPack').value, libroId: document.getElementById('linkLibro').value }, btn);
     }
 
-    function eliminarElemento(btn) {
-        const id = document.getElementById('listaEliminar').value;
-        const hoja = document.getElementById('tipoEliminar').value;
-        if(!id || !confirm("¿Borrar permanentemente?")) return;
-        enviar({ accion: "eliminar", hoja, id }, btn);
+    async function eliminar(btn) {
+        if(!confirm("¿Estás seguro? Se borrará del Excel permanentemente.")) return;
+        apiPost({ accion: "eliminar", hoja: document.getElementById('tipoBorrar').value, id: document.getElementById('itemBorrar').value }, btn);
     }
 
-    const setupPrev = (input, imgId) => {
-        input.onchange = e => {
-            const reader = new FileReader();
-            reader.onload = ev => { 
-                const img = document.getElementById(imgId);
-                img.src = ev.target.result; 
-                img.style.display = 'block'; 
-            };
-            reader.readAsDataURL(e.target.files[0]);
+    // Previsualizaciones
+    const setupPrev = (inId, imgId) => {
+        document.getElementById(inId).onchange = e => {
+            const r = new FileReader();
+            r.onload = ev => { const i = document.getElementById(imgId); i.src = ev.target.result; i.style.display = 'block'; };
+            r.readAsDataURL(e.target.files[0]);
         };
     };
-    setupPrev(document.getElementById('fotoAutor'), 'prevAutor');
-    setupPrev(document.getElementById('fotoLibro'), 'prevLibro');
-    setupPrev(document.getElementById('fotoPack'), 'prevPack');
+    setupPrev('fotoAutor', 'prevAutor');
+    setupPrev('fotoPack', 'prevPack');
+    setupPrev('fotoLibro', 'prevLibro');
 
-    actualizarListas();
+    document.getElementById('tipoBorrar').onchange = () => cargar();
+
+    cargar();
 </script>
 </body>
 </html>
