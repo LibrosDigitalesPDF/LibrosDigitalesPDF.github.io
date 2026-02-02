@@ -20,7 +20,18 @@
 
         /* Derecha: Lista enumerada */
         .lista-libros { flex: 1; }
-        .lista-libros h2 { border-bottom: 2px solid var(--accent); padding-bottom: 10px; color: var(--primary); }
+        
+        /* Encabezado de la lista con "Páginas" a la derecha */
+        .header-lista { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-end;
+            border-bottom: 2px solid var(--accent); 
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        .header-lista h2 { margin: 0; color: var(--primary); }
+        .label-paginas { font-weight: bold; color: var(--primary); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
         
         .libro-item { 
             display: flex; 
@@ -32,7 +43,7 @@
         .libro-info { display: flex; align-items: baseline; gap: 15px; }
         .num { font-weight: bold; color: var(--accent); font-size: 1.1rem; min-width: 25px; }
         .titulo { font-size: 1.1rem; }
-        .paginas { color: #888; font-size: 0.9rem; font-style: italic; }
+        .paginas-valor { color: #555; font-size: 1rem; font-weight: 500; }
 
         @media (max-width: 768px) { .container { flex-direction: column; } .sidebar-portada { flex: 1; } }
     </style>
@@ -51,7 +62,10 @@
     </div>
 
     <div class="lista-libros">
-        <h2 id="subtitulo-seccion">Libros</h2>
+        <div class="header-lista">
+            <h2 id="subtitulo-seccion">Libros</h2>
+            <span class="label-paginas">Páginas</span>
+        </div>
         <div id="contenedor-libros">
             </div>
     </div>
@@ -93,13 +107,11 @@
             else if (tipo === 'genero') {
                 nombre = decodeURIComponent(id);
                 libros = data.libros.filter(l => l.genero === nombre);
-                portada = libros[0]?.portada || ""; // Usa la portada del primer libro del género
+                portada = libros[0]?.portada || "";
             }
 
-            // Inyectar datos en la página
             document.getElementById('main-portada').src = portada;
             document.getElementById('main-titulo').innerText = nombre;
-            document.title = nombre;
 
             const htmlLibros = libros.map((l, index) => `
                 <div class="libro-item">
@@ -107,7 +119,7 @@
                         <span class="num">${index + 1}.</span>
                         <span class="titulo">${l.titulo}</span>
                     </div>
-                    <span class="paginas">${l.paginas} págs.</span>
+                    <span class="paginas-valor">${l.paginas}</span>
                 </div>
             `).join('');
 
@@ -115,7 +127,6 @@
 
         } catch (e) {
             console.error("Error:", e);
-            document.getElementById('main-titulo').innerText = "Error al cargar datos";
         }
     }
 
