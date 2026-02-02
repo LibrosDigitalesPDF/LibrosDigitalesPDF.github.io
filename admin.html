@@ -26,7 +26,21 @@
 
 <div class="container">
     <h1 style="text-align:center; color:var(--primary);">Administración</h1>
+<div class="card" style="border-top: 5px solid #e74c3c;">
+    <h2 style="color: #e74c3c;">4. Eliminar Contenido</h2>
+    <label>Tipo de elemento:</label>
+    <select id="tipoEliminar">
+        <option value="libros">Libro</option>
+        <option value="packs">Pack</option>
+    </select>
+    
+    <label>Selecciona el elemento a borrar:</label>
+    <select id="listaEliminar"><option>Cargando...</option></select>
+    
+    <button onclick="eliminarElemento()" style="background: #e74c3c; margin-top:15px;">ELIMINAR PERMANENTEMENTE</button>
+</div>
 
+    
     <div class="card">
         <h2>1. Subir Nuevo Libro</h2>
         <form id="libroForm">
@@ -68,6 +82,32 @@
 </div>
 
 <script>
+    async function eliminarElemento() {
+    if (!confirm("¿Estás seguro? Esta acción no se puede deshacer y borrará el elemento del Excel.")) return;
+    
+    const payload = {
+        accion: "eliminar",
+        hoja: document.getElementById('tipoEliminar').value,
+        id: document.getElementById('listaEliminar').value
+    };
+
+    await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+    alert("Eliminado con éxito");
+    location.reload();
+}
+
+// Actualiza la lista de borrar cuando cambias el tipo (Libro o Pack)
+document.getElementById('tipoEliminar').onchange = function() {
+    actualizarListas(); // Esto refrescará los selects
+};
+
+    // Agregá esto al principio de tu <script> en admin.html
+const pass = prompt("Ingresa la clave de administrador:");
+if (pass !== "Serepasan7") {
+    alert("Acceso denegado");
+    document.body.innerHTML = "<h1>No tienes permiso para estar aquí</h1>";
+}
+
     const API_URL = "https://script.google.com/macros/s/AKfycbxR9owUKbqXlUj3-hDYZKnFSxHqr1ZHl42z30kWREzJvFhHYwFShP1up5RPm8tuG_RC/exec"; 
 
     // Cargar listas iniciales
