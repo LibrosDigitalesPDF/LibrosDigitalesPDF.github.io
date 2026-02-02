@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Biblioteca</title>
+    <style>
+        :root { --primary: #2c3e50; --green: #27ae60; --blue: #3498db; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); padding: 20px; color: #333; }
+        .container { max-width: 650px; margin: 0 auto; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        h2 { margin-top: 0; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 1.4rem; }
+        label { display: block; margin: 12px 0 5px; font-weight: bold; font-size: 0.9rem; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 5px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 10px; transition: 0.3s; }
+        button:disabled { background: #ccc !important; cursor: not-allowed; }
+        .btn-green { background: var(--green); }
+        .btn-green:hover { background: #219150; }
+        .btn-blue { background: var(--blue); }
+        .btn-blue:hover { background: #2980b9; }
+        .preview-img { width: 100px; height: 140px; object-fit: cover; display: none; margin: 10px auto; border-radius: 5px; border: 2px solid #ddd; }
+        .status { text-align: center; font-size: 0.9rem; font-weight: bold; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 style="text-align:center; color:var(--primary);">Administración</h1>
+
+    <div class="card">
+        <h2>1. Subir Nuevo Libro</h2>
+        <form id="libroForm">
+            <input type="text" id="titulo" placeholder="Título del Libro" required>
+            <select id="autorSelect" required><option value="">Cargando autores...</option></select>
+            <input type="text" id="genero" placeholder="Género (Ej: Terror, Novela)">
+            <input type="number" id="paginas" placeholder="Cantidad de Páginas">
+            <label>Imagen de Portada:</label>
+            <input type="file" id="fotoLibro" accept="image/*" required>
+            <img id="prevLibro" class="preview-img">
+            <button type="submit" class="btn-green" id="btnLibro">GUARDAR LIBRO</button>
+        </form>
+        <div id="msgLibro" class="status">Subiendo libro...</div>
+    </div>
+
+    <div class="card">
+        <h2>2. Crear Nuevo Pack (Vacío)</h2>
+        <form id="nuevoPackForm">
+            <input type="text" id="nombrePack" placeholder="Nombre del Pack (Ej: Saga Harry Potter)" required>
+            <label>Imagen del Pack:</label>
+            <input type="file" id="fotoPack" accept="image/*" required>
+            <img id="prevPack" class="preview-img">
+            <button type="submit" class="btn-blue" id="btnNuevoPack">CREAR PACK</button>
+        </form>
+        <div id="msgNuevoPack" class="status">Creando pack...</div>
+    </div>
+
+    <div class="card">
+        <h2>3. Añadir Libro a un Pack</h2>
+        <form id="vinculoForm">
+            <label>Selecciona el Pack:</label>
+            <select id="packSelect" required><option value="">Cargando packs...</option></select>
+            <label>Selecciona el Libro:</label>
+            <select id="libroSelect" required><option value="">Cargando libros...</option></select>
+            <button type="submit" class="btn-blue" id="btnVinculo">VINCULAR AHORA</button>
+        </form>
+        <div id="msgVinculo" class="status">Vinculando...</div>
+    </div>
+</div>
+
+<script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbxR9owUKbqXlUj3-hDYZKnFSxHqr1ZHl42z30kWREzJvFhHYwFShP1up5RPm8tuG_RC/exec"; 
+
+    // Cargar listas iniciales
+    async function actualizarListas() {
+        try {
+            const res = await fetch(API_URL);
+            const data = await res.json();
+            
+            const fillSelect = (id, list, keyId, keyName, text) => {
+                const el = document.getElementById(id);
+                el.innerHTML = `<option value="">${text}</option>`;
+                list.sort((a,b) => String(a[keyName]).localeCompare(String(b[keyName])))
+                    .forEach(item => el.innerHTML += `<option value="${item[keyId]}">${item[keyName]}</option>`);
+            };
+
+            fillSelect('autorSelect', data.autores, 'autor_id', 'nombre', 'Seleccionar Autor');
+            fillSelect('packSelect', data.packs, 'pack_id', 'nombre', 'Seleccionar Pack');
+            fillSelect('libroSelect', data.libros, 'libro_id', 'titulo', 'Seleccionar Libro');
+        } catch (e) { console.error("Error cargando listas:", e); }
+    }
+
+    // Previsualización de imágenes
+    const handlePrev = (input, imgId) => {
+        input.onchange = (e) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = document.getElementById(imgId);
+                img.src = ev.target.result;
+                img.style.display = 'block';
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        };
+    };
+    handlePrev(document.getElementById('fotoLibro'), 'prevLibro');
+    handlePrev(document.getElementById('fotoPack'), 'prevPack');
+
+    // ENVIAR NUEVO LIBRO
+    document.getElementById('libroForm').onsubmit = async function(e) {
+        e.preventDefault();
+        enviarForm(this, 'btnLibro', 'msgLibro', {
+            accion: "nuevo_libro",
+            titulo: document.getElementById('titulo').value,
+            autorId: document.getElementById('autorSelect').value,
+            genero: document.getElementById('genero').value,
+            paginas: document.getElementById('paginas').value,
+            fileInput: document.getElementById('fotoLibro')
+        });
+    };
+
+    // CREAR NUEVO PACK
+    document.getElementById('nuevoPackForm').onsubmit = async function(e) {
+        e.preventDefault();
+        enviarForm(this, 'btnNuevoPack', 'msgNuevoPack', {
+            accion: "nuevo_pack",
+            nombre: document.getElementById('nombrePack').value,
+            fileInput: document.getElementById('fotoPack')
+        });
+    };
+
+    // VINCULAR LIBRO A PACK
+    document.getElementById('vinculoForm').onsubmit = async function(e) {
+        e.preventDefault();
+        enviarForm(this, 'btnVinculo', 'msgVinculo', {
+            accion: "asociar_pack",
+            packId: document.getElementById('packSelect').value,
+            libroId: document.getElementById('libroSelect').value
+        });
+    };
+
+    async function enviarForm(form, btnId, msgId, params) {
+        const btn = document.getElementById(btnId);
+        const msg = document.getElementById(msgId);
+        btn.disabled = true; msg.style.display = 'block';
+
+        const process = async (base64 = null, file = null) => {
+            const payload = { ...params, imagenBase64: base64, mimeType: file?.type, nombreArchivo: file?.name };
+            delete payload.fileInput;
+            
+            await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            alert("¡Operación Exitosa!");
+            location.reload();
+        };
+
+        if (params.fileInput) {
+            const file = params.fileInput.files[0];
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => process(reader.result, file);
+        } else {
+            process();
+        }
+    }
+
+    actualizarListas();
+</script>
+</body>
+</html>
