@@ -3,134 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalles del Catálogo</title>
+    <title>Detalle</title>
     <style>
-        :root { --primary: #2c3e50; --accent: #27ae60; --bg: #fdfdfd; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: #333; }
-        
-        header { background: var(--primary); color: white; padding: 20px; text-align: center; }
-        .btn-volver { color: white; text-decoration: none; font-size: 0.9rem; border: 1px solid white; padding: 5px 10px; border-radius: 5px; float: left; }
-
+        :root { --primary: #2c3e50; --accent: #27ae60; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: #fdfdfd; }
+        header { background: var(--primary); color: white; padding: 15px; text-align: center; }
+        .btn-volver { color: white; text-decoration: none; border: 1px solid white; padding: 5px 10px; border-radius: 5px; float: left; }
         .container { display: flex; max-width: 1100px; margin: 40px auto; gap: 40px; padding: 0 20px; }
-
-        /* Izquierda: Portada */
         .sidebar-portada { flex: 0 0 35%; text-align: center; }
         .sidebar-portada img { width: 100%; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .sidebar-portada h1 { margin-top: 20px; color: var(--primary); font-size: 1.8rem; }
-
-        /* Derecha: Lista enumerada */
         .lista-libros { flex: 1; }
-        
-        /* Encabezado de la lista con "Páginas" a la derecha */
-        .header-lista { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: flex-end;
-            border-bottom: 2px solid var(--accent); 
-            padding-bottom: 10px;
-            margin-bottom: 10px;
-        }
-        .header-lista h2 { margin: 0; color: var(--primary); }
-        .label-paginas { font-weight: bold; color: var(--primary); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
-        
-        .libro-item { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            padding: 15px 10px; 
-            border-bottom: 1px solid #eee; 
-        }
-        .libro-info { display: flex; align-items: baseline; gap: 15px; }
-        .num { font-weight: bold; color: var(--accent); font-size: 1.1rem; min-width: 25px; }
-        .titulo { font-size: 1.1rem; }
-        .paginas-valor { color: #555; font-size: 1rem; font-weight: 500; }
-
-        @media (max-width: 768px) { .container { flex-direction: column; } .sidebar-portada { flex: 1; } }
+        .header-lista { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid var(--accent); padding-bottom: 10px; margin-bottom: 10px; }
+        .libro-item { display: flex; justify-content: space-between; padding: 15px 10px; border-bottom: 1px solid #eee; }
+        .num { font-weight: bold; color: var(--accent); margin-right: 10px; }
     </style>
 </head>
 <body>
-
-<header>
-    <a href="index.html" class="btn-volver">← Volver</a>
-    <h1>Detalles</h1>
-</header>
-
-<div class="container">
-    <div class="sidebar-portada">
-        <img id="main-portada" src="" alt="Cargando...">
-        <h1 id="main-titulo">Cargando...</h1>
-    </div>
-
-    <div class="lista-libros">
-        <div class="header-lista">
-            <h2 id="subtitulo-seccion">Libros</h2>
-            <span class="label-paginas">Páginas</span>
+    <header>
+        <a href="index.html" class="btn-volver">← Volver</a>
+        <h1 id="header-tit">Cargando...</h1>
+    </header>
+    <div class="container">
+        <div class="sidebar-portada">
+            <img id="main-portada" src="" onerror="this.src='https://via.placeholder.com/400x600?text=Sin+Foto'">
+            <h1 id="main-titulo"></h1>
         </div>
-        <div id="contenedor-libros">
+        <div class="lista-libros">
+            <div class="header-lista">
+                <h2>Libros</h2>
+                <span style="font-weight:bold">PÁGINAS</span>
             </div>
+            <div id="contenedor-libros"></div>
+        </div>
     </div>
-</div>
-
-<script>
-    const API = "https://script.google.com/macros/s/AKfycbxR9owUKbqXlUj3-hDYZKnFSxHqr1ZHl42z30kWREzJvFhHYwFShP1up5RPm8tuG_RC/exec";
-
-    async function cargarDetalles() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const tipo = urlParams.get('tipo');
-        const id = urlParams.get('id');
-
-        try {
+    <script>
+        const API = "https://script.google.com/macros/s/AKfycbxR9owUKbqXlUj3-hDYZKnFSxHqr1ZHl42z30kWREzJvFhHYwFShP1up5RPm8tuG_RC/exec";
+        async function cargar() {
+            const p = new URLSearchParams(window.location.search);
             const res = await fetch(API);
             const data = await res.json();
-
-            let portada = "";
-            let nombre = "";
-            let libros = [];
-
-            if (tipo === 'autor') {
-                const autor = data.autores.find(a => a.autor_id == id);
-                if (autor) {
-                    portada = autor.portada;
-                    nombre = autor.nombre;
-                    libros = data.libros.filter(l => l.autor_id == id);
-                }
-            } 
-            else if (tipo === 'pack') {
-                const pack = data.packs.find(p => p.pack_id == id);
-                if (pack) {
-                    portada = pack.portada;
-                    nombre = pack.nombre;
-                    const rel = data.libro_packs.filter(rp => rp.pack_id == id).map(r => r.libro_id);
-                    libros = data.libros.filter(l => rel.includes(l.libro_id));
-                }
-            }
-            else if (tipo === 'genero') {
-                nombre = decodeURIComponent(id);
-                libros = data.libros.filter(l => l.genero === nombre);
-                portada = libros[0]?.portada || "";
+            let port, nom, libs = [];
+            
+            if (p.get('tipo') === 'autor') {
+                const a = data.autores.find(x => x.autor_id == p.get('id'));
+                port = a.portada; nom = a.nombre; libs = data.libros.filter(l => l.autor_id == p.get('id'));
+            } else if (p.get('tipo') === 'pack') {
+                const pk = data.packs.find(x => x.pack_id == p.get('id'));
+                port = pk.portada; nom = pk.nombre;
+                const rel = data.libro_packs.filter(rp => rp.pack_id == p.get('id')).map(r => r.libro_id);
+                libs = data.libros.filter(l => rel.includes(l.libro_id));
             }
 
-            document.getElementById('main-portada').src = portada;
-            document.getElementById('main-titulo').innerText = nombre;
-
-            const htmlLibros = libros.map((l, index) => `
+            document.getElementById('main-portada').src = port;
+            document.getElementById('main-titulo').innerText = nom;
+            document.getElementById('header-tit').innerText = nom;
+            document.getElementById('contenedor-libros').innerHTML = libs.map((l, i) => `
                 <div class="libro-item">
-                    <div class="libro-info">
-                        <span class="num">${index + 1}.</span>
-                        <span class="titulo">${l.titulo}</span>
-                    </div>
-                    <span class="paginas-valor">${l.paginas}</span>
-                </div>
-            `).join('');
-
-            document.getElementById('contenedor-libros').innerHTML = htmlLibros || "<p>No se encontraron libros.</p>";
-
-        } catch (e) {
-            console.error("Error:", e);
+                    <span><span class="num">${i+1}.</span> ${l.titulo}</span>
+                    <span>${l.paginas}</span>
+                </div>`).join('');
         }
-    }
-
-    cargarDetalles();
-</script>
+        cargar();
+    </script>
 </body>
 </html>
