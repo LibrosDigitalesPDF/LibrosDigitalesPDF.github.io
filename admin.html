@@ -3,198 +3,544 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Admin - Gestión de Biblioteca</title>
+    <title>Admin - Catálogo Completo</title>
     <style>
-        :root { --primary: #2c3e50; --green: #27ae60; --blue: #3498db; --red: #e74c3c; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); padding: 20px; color: #333; }
-        .container { max-width: 700px; margin: 0 auto; }
-        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 25px; border-left: 5px solid transparent; }
-        h1 { text-align: center; color: var(--primary); margin-bottom: 30px; }
-        h2 { margin-top: 0; color: var(--primary); border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 1.25rem; }
-        label { display: block; margin: 10px 0 5px; font-weight: bold; font-size: 0.9rem; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
-        button { width: 100%; padding: 15px; border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 5px; font-size: 1rem; }
-        button:disabled { background: #ccc !important; cursor: not-allowed; }
-        .btn-green { background: var(--green); }
-        .btn-green:hover { background: #219150; }
-        .btn-blue { background: var(--blue); }
-        .btn-blue:hover { background: #2980b9; }
-        .btn-red { background: var(--red); }
-        .preview-img { width: 100px; height: 130px; object-fit: cover; display: none; margin: 10px auto; border-radius: 8px; border: 2px solid #eee; }
-        .loading-overlay { display: none; text-align: center; font-weight: bold; color: var(--blue); margin-top: 10px; }
+        /* --- ESTILOS GENERALES --- */
+        :root { --primary: #2563eb; --danger: #dc2626; --success: #16a34a; --bg: #f8fafc; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); margin: 0; padding: 0; }
+
+        /* --- ESTILOS LOGIN (PANTALLA DE BLOQUEO) --- */
+        #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #1e293b; z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column;
+        }
+        .login-box {
+            background: white; padding: 30px; border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center;
+            width: 90%; max-width: 350px;
+        }
+        .login-box h2 { margin-top: 0; color: #333; margin-bottom: 10px; }
+        .login-input {
+            width: 100%; padding: 12px; margin: 15px 0;
+            border: 2px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 16px; text-align: center;
+        }
+        .login-input:focus { border-color: var(--primary); outline: none; }
+        .btn-login {
+            background: var(--primary); color: white; border: none;
+            padding: 12px; width: 100%; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold;
+            transition: 0.2s;
+        }
+        .btn-login:hover { background: #1d4ed8; }
+        #error-msg { color: #dc2626; display: none; margin-top: 10px; font-weight: bold; }
+
+        /* --- CONTENIDO PRINCIPAL (OCULTO AL INICIO) --- */
+        #app-content { display: none; padding: 15px; }
+
+
+        /* CABECERA */
+        .top-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        .search-container { flex: 1; min-width: 200px; }
+        .search-input { width: 100%; padding: 12px; border: 2px solid #cbd5e1; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        .search-input:focus { border-color: var(--primary); outline: none; }
+
+        /* PESTAÑAS */
+        .tabs { display: flex; gap: 5px; margin-bottom: 15px; overflow-x: auto; padding-bottom: 5px; -webkit-overflow-scrolling: touch; }
+        .tab { padding: 10px 20px; background: white; border-radius: 20px; border: 1px solid #cbd5e1; cursor: pointer; font-weight: 600; color: #64748b; white-space: nowrap; transition: 0.2s; }
+        .tab.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 2px 5px rgba(37,99,235,0.3); }
+
+        /* TABLAS (Modo Escritorio) */
+        .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #1e293b; color: white; text-align: left; padding: 15px; display: none; } 
+        td { padding: 10px 15px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        
+        input.celda { width: 100%; padding: 8px; border: 1px solid #e2e8f0; border-radius: 6px; box-sizing: border-box; font-size: 14px; transition: 0.2s; }
+        input.celda:focus { border-color: var(--primary); background: #eff6ff; }
+        
+        .img-mini { width: 50px; height: 75px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; background: #eee; }
+
+        /* BOTONES */
+        .btn { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: bold; transition: 0.2s; }
+        .btn:active { transform: scale(0.98); }
+        .btn-add { background: var(--primary); width: 100%; max-width: 200px; }
+        .btn-save { background: var(--success); margin-right: 5px; }
+        .btn-del { background: var(--danger); }
+        .btn-tools { background: #f59e0b; width: 100%; margin-top: 10px; }
+
+        /* SECCIONES */
+        .seccion-contenido { display: none; animation: fadeIn 0.3s; }
+        .seccion-contenido.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .import-box { background: #dbeafe; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #93c5fd; }
+
+        /* --- MEDIA QUERY: PC (Ver tabla completa) --- */
+        @media screen and (min-width: 769px) {
+            th { display: table-cell; } 
+        }
+
+        /* --- MEDIA QUERY: MÓVIL (Vista Tarjetas) --- */
+        @media screen and (max-width: 768px) {
+            /* Convertir fila en tarjeta */
+            tr { display: flex; flex-direction: column; background: white; margin-bottom: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); padding: 20px; border: 1px solid #e2e8f0; }
+            td { display: block; padding: 5px 0; border: none; width: 100%; }
+            
+            /* FOTO ARRIBA Y GRANDE */
+            td:first-child { text-align: center; margin-bottom: 15px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; }
+            td:first-child img.img-mini { width: 140px; height: 210px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+            
+            /* BOTONES ABAJO */
+            td:last-child { margin-top: 15px; display: flex; gap: 10px; padding-top: 15px; border-top: 1px solid #f1f5f9; }
+            td:last-child button { flex: 1; padding: 12px; font-size: 16px; }
+
+            /* Inputs más grandes para tocar con el dedo */
+            td input { font-size: 16px; padding: 12px; }
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Panel de Control Biblioteca</h1>
-
-    <div class="card" style="border-color: var(--blue);">
-        <h2>1. Registrar Autor</h2>
-        <input type="text" id="nombreAutor" placeholder="Nombre del Autor">
-        <label>Foto del Autor:</label>
-        <input type="file" id="fotoAutor" accept="image/*">
-        <img id="prevAutor" class="preview-img">
-        <button onclick="guardarAutor(this)" class="btn-blue">GUARDAR AUTOR</button>
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>🔒 Acceso Admin</h2>
+            <p style="color:#666; margin-bottom:15px;">Introduce la clave para continuar</p>
+            <input type="password" id="password-input" class="login-input" placeholder="Contraseña...">
+            <button class="btn-login" onclick="verificarLogin()">ENTRAR AL PANEL</button>
+            <p id="error-msg">❌ Contraseña incorrecta</p>
+        </div>
     </div>
 
-    <div class="card" style="border-color: var(--blue);">
-        <h2>2. Crear Pack</h2>
-        <input type="text" id="nombrePack" placeholder="Nombre del Pack (ej: Saga Harry Potter)">
-        <label>Portada del Pack:</label>
-        <input type="file" id="fotoPack" accept="image/*">
-        <img id="prevPack" class="preview-img">
-        <button onclick="guardarPack(this)" class="btn-blue">GUARDAR PACK</button>
-    </div>
+    <div id="app-content">
 
-    <div class="card" style="border-color: var(--green);">
-        <h2>3. Subir Libro</h2>
-        <input type="text" id="tituloLibro" placeholder="Título del Libro">
-        <select id="selectAutor"><option value="">Cargando autores...</option></select>
-        <input type="text" id="generoLibro" placeholder="Género">
-        <input type="number" id="paginasLibro" placeholder="Cantidad de Páginas">
-        <label>Portada del Libro:</label>
-        <input type="file" id="fotoLibro" accept="image/*">
-        <img id="prevLibro" class="preview-img">
-        <button onclick="guardarLibro(this)" class="btn-green">PUBLICAR LIBRO</button>
-    </div>
+        <h2 style="text-align: center; color: #334155; margin-top:0;">📚 Panel de Administración</h2>
 
-    <div class="card" style="border-color: #f1c40f;">
-        <h2>4. Vincular Libro a Pack</h2>
-        <select id="linkPack"><option value="">Seleccionar Pack</option></select>
-        <select id="linkLibro"><option value="">Seleccionar Libro</option></select>
-        <button onclick="vincular(this)" style="background: #f1c40f; color: #333;">VINCULAR AHORA</button>
-    </div>
+        <div class="tabs">
+            <div class="tab active" onclick="cambiarTab('libros')">📖 Libros</div>
+            <div class="tab" onclick="cambiarTab('autores')">✍️ Autores</div>
+            <div class="tab" onclick="cambiarTab('packs')">📦 Packs</div>
+            <div class="tab" onclick="cambiarTab('importar')">📥 Importar</div>
+            <div class="tab" onclick="cambiarTab('herramientas')">🛠️ Herramientas</div>
+        </div>
 
-    <div class="card" style="border-color: var(--red);">
-        <h2 style="color: var(--red);">5. Eliminar Elementos</h2>
-        <select id="tipoBorrar">
-            <option value="libros">Libro</option>
-            <option value="packs">Pack</option>
-            <option value="autores">Autor</option>
-        </select>
-        <select id="itemBorrar"><option value="">Selecciona qué borrar...</option></select>
-        <button onclick="eliminar(this)" class="btn-red">BORRAR PERMANENTEMENTE</button>
-    </div>
+        <div class="top-bar">
+            <div class="search-container">
+                <input type="text" id="buscador" class="search-input" placeholder="🔍 Buscar..." onkeyup="filtrarTabla()">
+            </div>
+            <button class="btn btn-add" onclick="agregarFilaVacia()">+ Nuevo Registro</button>
+        </div>
 
-    <div id="status" class="loading-overlay">⏳ Procesando... No cierres la página.</div>
-</div>
+        <div id="loading" style="text-align: center; display: none; padding: 20px;">Cargando base de datos... ⏳</div>
 
-<script>
-    // --- CONFIGURACIÓN ---
-    const CLAVE_CORRECTA = "Serepasan7"; // <--- CAMBIA ESTO
-    const API_URL = "https://script.google.com/macros/s/AKfycbxR9owUKbqXlUj3-hDYZKnFSxHqr1ZHl42z30kWREzJvFhHYwFShP1up5RPm8tuG_RC/exec"; // <--- TU URL DE GOOGLE SCRIPT
+        <div id="view-libros" class="seccion-contenido active">
+            <div class="table-container">
+                <table id="tabla-libros">
+                    <thead>
+                        <tr>
+                            <th width="60">Portada</th>
+                            <th>Título</th>
+                            <th>Autor</th>
+                            <th>Género</th>
+                            <th width="70">Págs</th>
+                            <th>Pack</th>
+                            <th>URL Portada</th>
+                            <th width="100">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="body-libros"></tbody>
+                </table>
+            </div>
+        </div>
 
-    // Seguridad
-    const userPass = prompt("Contraseña de administrador:");
-    if (userPass !== CLAVE_CORRECTA) {
-        alert("Acceso denegado");
-        document.body.innerHTML = "<h1>No autorizado</h1>";
-        throw new Error("Acceso denegado");
-    }
+        <div id="view-autores" class="seccion-contenido">
+            <div class="table-container">
+                <table id="tabla-autores">
+                    <thead>
+                        <tr>
+                            <th width="60">Foto</th>
+                            <th>Nombre</th>
+                            <th>Bio / Info</th>
+                            <th>URL Foto</th>
+                            <th width="100">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="body-autores"></tbody>
+                </table>
+            </div>
+        </div>
 
-    // --- CARGA DE DATOS ---
-    async function cargar() {
-        try {
-            const res = await fetch(API_URL);
-            const data = await res.json();
-            
-            const llenarSelect = (id, lista, idKey, txtKey) => {
-                const s = document.getElementById(id);
-                s.innerHTML = '<option value="">Seleccionar...</option>';
-                lista.sort((a,b) => String(a[txtKey] || a.titulo).localeCompare(String(b[txtKey] || b.titulo)))
-                     .forEach(item => s.innerHTML += `<option value="${item[idKey]}">${item[txtKey] || item.titulo || item.nombre}</option>`);
-            };
+        <div id="view-packs" class="seccion-contenido">
+            <div class="table-container">
+                <table id="tabla-packs">
+                    <thead>
+                        <tr>
+                            <th width="60">Foto</th>
+                            <th>Nombre del Pack</th>
+                            <th>URL Foto Pack</th>
+                            <th width="100">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="body-packs"></tbody>
+                </table>
+            </div>
+        </div>
 
-            llenarSelect('selectAutor', data.autores, 'autor_id', 'nombre');
-            llenarSelect('linkPack', data.packs, 'pack_id', 'nombre');
-            llenarSelect('linkLibro', data.libros, 'libro_id', 'titulo');
-            
-            actualizarListaBorrar(data);
-        } catch (e) { console.error("Error cargando datos:", e); }
-    }
+        <div id="view-importar" class="seccion-contenido">
+            <div class="import-box">
+                <h3>📥 Importación Masiva de Libros</h3>
+                <p style="font-size:0.9em; margin-bottom:10px;">
+                    Pega tu lista abajo. Formato recomendado:<br>
+                    <b>Título del libro (paginas 300).</b>
+                </p>
+                
+                <div style="margin-bottom:10px; display:flex; gap:5px; flex-wrap:wrap;">
+                    <input id="global-autor" type="text" class="celda" placeholder="Autor para todos (Opcional)">
+                    <input id="global-genero" type="text" class="celda" placeholder="Género (Opcional)">
+                    <input id="global-pack" type="text" class="celda" placeholder="Pack (Opcional)">
+                </div>
 
-    function actualizarListaBorrar(data) {
-        const tipo = document.getElementById('tipoBorrar').value;
-        const idKey = tipo === 'libros' ? 'libro_id' : (tipo === 'packs' ? 'pack_id' : 'autor_id');
-        const txtKey = tipo === 'libros' ? 'titulo' : 'nombre';
-        
-        const s = document.getElementById('itemBorrar');
-        s.innerHTML = '<option value="">Seleccionar elemento...</option>';
-        if(data && data[tipo]) {
-            data[tipo].forEach(item => s.innerHTML += `<option value="${item[idKey]}">${item[txtKey]}</option>`);
+                <textarea id="texto-importar" style="width:100%; height:200px; padding:10px; border:1px solid #ccc; font-family:monospace;" placeholder="Ejemplo:&#10;1 - Heist (paginas 300).&#10;2 - Plan Condor (paginas 566)."></textarea>
+                
+                <div id="preview-data" style="margin-top:10px; font-size:0.9em;"></div>
+                
+                <div style="margin-top:10px;">
+                    <button class="btn btn-add" onclick="interpretarTexto()">🔍 1. Analizar Texto</button>
+                    <button id="btn-importar" class="btn btn-save" onclick="enviarImportacion()" style="display:none;">💾 2. Confirmar y Guardar</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-herramientas" class="seccion-contenido">
+            <div class="import-box" style="background: #fff3cd; border-color: #fcd34d;">
+                <h3>🔄 Renombrado Masivo</h3>
+                <p>Si escribiste mal "Ciencia Ficcion" en 100 libros, arréglalo aquí en un click.</p>
+                <label style="font-weight:bold; display:block; margin-bottom:5px;">¿Qué quieres corregir?</label>
+                <select id="tool-tipo" class="celda" style="margin-bottom:10px;">
+                    <option value="genero">Género</option>
+                    <option value="pack">Pack / Saga</option>
+                </select>
+                
+                <input id="tool-viejo" class="celda" placeholder="Nombre VIEJO (ej: Terrorr)" style="margin-bottom:5px;">
+                <input id="tool-nuevo" class="celda" placeholder="Nombre NUEVO (ej: Terror)" style="margin-bottom:5px;">
+                
+                <button class="btn btn-tools" onclick="ejecutarRenombrado()">Aplicar Corrección en Toda la Base de Datos</button>
+            </div>
+        </div>
+    </div> <script>
+        // ======================================================
+        // 🔒 CONFIGURACIÓN DE SEGURIDAD
+        // ======================================================
+        const PASSWORD_REAL = "admin123"; // <--- ¡CAMBIA ESTA CONTRASEÑA!
+        // ======================================================
+
+        const API_URL = "TU_URL_DEL_SCRIPT_AQUI"; 
+
+        // --- SISTEMA DE LOGIN ---
+        function verificarLogin() {
+            const input = document.getElementById("password-input").value;
+            if(input === PASSWORD_REAL) {
+                // Contraseña correcta: Ocultamos login y mostramos la app
+                document.getElementById("login-screen").style.display = "none";
+                document.getElementById("app-content").style.display = "block";
+                cargarTodo(); // Recién aquí cargamos los datos
+            } else {
+                // Contraseña incorrecta
+                document.getElementById("error-msg").style.display = "block";
+            }
         }
-    }
 
-    // --- FUNCIONES DE ENVÍO ---
-    async function apiPost(payload, btn) {
-        btn.disabled = true;
-        document.getElementById('status').style.display = 'block';
-        await fetch(API_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        alert("✅ Hecho con éxito");
-        location.reload();
-    }
-
-    function leerImagen(input, callback) {
-        const file = input.files[0];
-        if(!file) return callback("");
-        const reader = new FileReader();
-        reader.onload = () => callback(reader.result, file.type, file.name);
-        reader.readAsDataURL(file);
-    }
-
-    function guardarAutor(btn) {
-        leerImagen(document.getElementById('fotoAutor'), (base64, type, name) => {
-            if(!base64) return alert("Falta la foto");
-            apiPost({ accion: "nuevo_autor", nombre: document.getElementById('nombreAutor').value, imagenBase64: base64, mimeType: type, nombreArchivo: name }, btn);
+        // Permitir entrar con tecla Enter
+        document.getElementById("password-input").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") verificarLogin();
         });
-    }
 
-    function guardarPack(btn) {
-        leerImagen(document.getElementById('fotoPack'), (base64, type, name) => {
-            if(!base64) return alert("Falta la foto");
-            apiPost({ accion: "nuevo_pack", nombre: document.getElementById('nombrePack').value, imagenBase64: base64, mimeType: type, nombreArchivo: name }, btn);
-        });
-    }
+        // --- VARIABLES GLOBALES ---
+        let db = { libros: [], autores: [], packs: [] };
+        let vistaActual = 'libros';
+        let listaImportacion = [];
 
-    function guardarLibro(btn) {
-        leerImagen(document.getElementById('fotoLibro'), (base64, type, name) => {
-            if(!base64) return alert("Falta la portada");
-            apiPost({
-                accion: "nuevo_libro",
-                titulo: document.getElementById('tituloLibro').value,
-                autorId: document.getElementById('selectAutor').value,
-                genero: document.getElementById('generoLibro').value,
-                paginas: document.getElementById('paginasLibro').value,
-                imagenBase64: base64, mimeType: type, nombreArchivo: name
-            }, btn);
-        });
-    }
+        // NOTA: Ya no usamos window.onload para cargarTodo, se llama desde verificarLogin()
 
-    function vincular(btn) {
-        apiPost({ accion: "asociar_pack", packId: document.getElementById('linkPack').value, libroId: document.getElementById('linkLibro').value }, btn);
-    }
+        function cargarTodo() {
+            document.getElementById('loading').style.display = 'block';
+            
+            fetch(API_URL, { method: "POST", body: JSON.stringify({ accion: "leerTodo" }) })
+            .then(res => res.json())
+            .then(data => {
+                // Guardamos los datos
+                if(data.libros) db.libros = data.libros.map(r => ({ id: r[0], titulo: r[1], autor: r[2], genero: r[3], paginas: r[4], portada: r[5], pack: r[6], drive: r[7] }));
+                if(data.autores) db.autores = data.autores.map(r => ({ id: r[0], nombre: r[1], foto: r[2], bio: r[3] }));
+                if(data.packs) db.packs = data.packs.map(r => ({ id: r[0], nombre: r[1], foto: r[2] }));
 
-    async function eliminar(btn) {
-        if(!confirm("¿Estás seguro? Se borrará del Excel permanentemente.")) return;
-        apiPost({ accion: "eliminar", hoja: document.getElementById('tipoBorrar').value, id: document.getElementById('itemBorrar').value }, btn);
-    }
+                document.getElementById('loading').style.display = 'none';
+                
+                // Dibujamos las tablas
+                renderizarLibros(db.libros);
+                renderizarAutores(db.autores);
+                renderizarPacks(db.packs);
+            })
+            .catch(error => {
+                alert("Error cargando datos: " + error);
+                document.getElementById('loading').style.display = 'none';
+            });
+        }
 
-    // Previsualizaciones
-    const setupPrev = (inId, imgId) => {
-        document.getElementById(inId).onchange = e => {
-            const r = new FileReader();
-            r.onload = ev => { const i = document.getElementById(imgId); i.src = ev.target.result; i.style.display = 'block'; };
-            r.readAsDataURL(e.target.files[0]);
-        };
-    };
-    setupPrev('fotoAutor', 'prevAutor');
-    setupPrev('fotoPack', 'prevPack');
-    setupPrev('fotoLibro', 'prevLibro');
+        // --- SISTEMA DE PESTAÑAS ---
+        function cambiarTab(tab) {
+            vistaActual = tab;
+            // Desactivar todas
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.seccion-contenido').forEach(s => s.classList.remove('active'));
+            
+            // Activar la seleccionada
+            const botonTab = document.querySelector(`.tab[onclick="cambiarTab('${tab}')"]`);
+            if(botonTab) botonTab.classList.add('active');
+            
+            const seccion = document.getElementById(`view-${tab}`);
+            if(seccion) seccion.classList.add('active');
 
-    document.getElementById('tipoBorrar').onchange = () => cargar();
+            // Limpiar buscador
+            document.getElementById('buscador').value = "";
+            filtrarTabla(); 
+        }
 
-    cargar();
-</script>
+        // --- BUSCADOR ---
+        function filtrarTabla() {
+            const txt = document.getElementById('buscador').value.toLowerCase();
+            
+            if (vistaActual === 'libros') {
+                const filtrados = db.libros.filter(l => (l.titulo+l.autor+l.genero+l.pack).toLowerCase().includes(txt));
+                renderizarLibros(filtrados);
+            } else if (vistaActual === 'autores') {
+                const filtrados = db.autores.filter(a => a.nombre.toLowerCase().includes(txt));
+                renderizarAutores(filtrados);
+            } else if (vistaActual === 'packs') {
+                const filtrados = db.packs.filter(p => p.nombre.toLowerCase().includes(txt));
+                renderizarPacks(filtrados);
+            }
+        }
+
+        // --- RENDERIZADO DE TABLAS ---
+        function renderizarLibros(lista) {
+            document.getElementById('body-libros').innerHTML = lista.map(l => `
+                <tr>
+                    <td><img src="${l.portada}" class="img-mini" onerror="this.src='https://via.placeholder.com/150?text=Sin+Foto'"></td>
+                    <td><input class="celda" id="ltit${l.id}" value="${l.titulo}" placeholder="Título"></td>
+                    <td><input class="celda" id="laut${l.id}" value="${l.autor}" placeholder="Autor"></td>
+                    <td><input class="celda" id="lgen${l.id}" value="${l.genero}" placeholder="Género"></td>
+                    <td><input type="number" class="celda" id="lpag${l.id}" value="${l.paginas}" placeholder="0"></td>
+                    <td><input class="celda" id="lpac${l.id}" value="${l.pack}" placeholder="Pack"></td>
+                    <td><input class="celda" id="limg${l.id}" value="${l.portada}" placeholder="https://..."></td>
+                    <td>
+                        <button class="btn btn-save" onclick="guardarLibro('${l.id}')">💾</button>
+                        <button class="btn btn-del" onclick="eliminar('${l.id}','libro')">🗑️</button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        function renderizarAutores(lista) {
+            document.getElementById('body-autores').innerHTML = lista.map(a => `
+                <tr>
+                    <td><img src="${a.foto}" class="img-mini" onerror="this.src='https://via.placeholder.com/150?text=Sin+Foto'"></td>
+                    <td><input class="celda" id="anom${a.id}" value="${a.nombre}" placeholder="Nombre Autor"></td>
+                    <td><input class="celda" id="abio${a.id}" value="${a.bio}" placeholder="Biografía"></td>
+                    <td><input class="celda" id="aimg${a.id}" value="${a.foto}" placeholder="https://..."></td>
+                    <td>
+                        <button class="btn btn-save" onclick="guardarAutor('${a.id}')">💾</button>
+                        <button class="btn btn-del" onclick="eliminar('${a.id}','autor')">🗑️</button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        function renderizarPacks(lista) {
+            document.getElementById('body-packs').innerHTML = lista.map(p => `
+                <tr>
+                    <td><img src="${p.foto}" class="img-mini" onerror="this.src='https://via.placeholder.com/150?text=Sin+Foto'"></td>
+                    <td><input class="celda" id="pnom${p.id}" value="${p.nombre}" placeholder="Nombre Pack"></td>
+                    <td><input class="celda" id="pimg${p.id}" value="${p.foto}" placeholder="https://..."></td>
+                    <td>
+                        <button class="btn btn-save" onclick="guardarPack('${p.id}')">💾</button>
+                        <button class="btn btn-del" onclick="eliminar('${p.id}','pack')">🗑️</button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        // --- AGREGAR NUEVO ---
+        function agregarFilaVacia() {
+            const id = "NEW" + Date.now();
+            const filaStyle = `style="border-left: 5px solid var(--primary); background: #f0f9ff;"`;
+
+            if (vistaActual === 'libros') {
+                const fila = `
+                <tr ${filaStyle}>
+                    <td>🆕</td>
+                    <td><input class="celda" id="ltit${id}" placeholder="Título"></td>
+                    <td><input class="celda" id="laut${id}" placeholder="Autor"></td>
+                    <td><input class="celda" id="lgen${id}" placeholder="Género"></td>
+                    <td><input class="celda" id="lpag${id}" placeholder="Págs"></td>
+                    <td><input class="celda" id="lpac${id}" placeholder="Pack"></td>
+                    <td><input class="celda" id="limg${id}" placeholder="Link Foto"></td>
+                    <td><button class="btn btn-save" onclick="guardarLibro('${id}', true)">CREAR</button></td>
+                </tr>`;
+                document.getElementById('body-libros').insertAdjacentHTML('afterbegin', fila);
+            } 
+            else if (vistaActual === 'autores') {
+                const fila = `
+                <tr ${filaStyle}>
+                    <td>🆕</td>
+                    <td><input class="celda" id="anom${id}" placeholder="Nombre Autor"></td>
+                    <td><input class="celda" id="abio${id}" placeholder="Biografía"></td>
+                    <td><input class="celda" id="aimg${id}" placeholder="Link Foto"></td>
+                    <td><button class="btn btn-save" onclick="guardarAutor('${id}', true)">CREAR</button></td>
+                </tr>`;
+                document.getElementById('body-autores').insertAdjacentHTML('afterbegin', fila);
+            }
+            else if (vistaActual === 'packs') {
+                const fila = `
+                <tr ${filaStyle}>
+                    <td>🆕</td>
+                    <td><input class="celda" id="pnom${id}" placeholder="Nombre Pack"></td>
+                    <td><input class="celda" id="pimg${id}" placeholder="Link Foto"></td>
+                    <td><button class="btn btn-save" onclick="guardarPack('${id}', true)">CREAR</button></td>
+                </tr>`;
+                document.getElementById('body-packs').insertAdjacentHTML('afterbegin', fila);
+            }
+        }
+
+        // --- GUARDAR ---
+        function guardarLibro(id, esNuevo) {
+            const libro = {
+                id: esNuevo ? "L-" + Date.now() : id,
+                titulo: document.getElementById(`ltit${id}`).value,
+                autor: document.getElementById(`laut${id}`).value,
+                genero: document.getElementById(`lgen${id}`).value,
+                paginas: document.getElementById(`lpag${id}`).value,
+                pack: document.getElementById(`lpac${id}`).value,
+                portada: document.getElementById(`limg${id}`).value,
+                drive_id: ""
+            };
+            enviarDatos("guardarLibro", { libro: libro, esNuevo: esNuevo });
+        }
+
+        function guardarAutor(id, esNuevo) {
+            const autor = {
+                id: esNuevo ? "A-" + Date.now() : id,
+                nombre: document.getElementById(`anom${id}`).value,
+                bio: document.getElementById(`abio${id}`).value,
+                foto: document.getElementById(`aimg${id}`).value
+            };
+            enviarDatos("guardarAutor", { autor: autor, esNuevo: esNuevo });
+        }
+
+        function guardarPack(id, esNuevo) {
+            const pack = {
+                id: esNuevo ? "P-" + Date.now() : id,
+                nombre: document.getElementById(`pnom${id}`).value,
+                foto: document.getElementById(`pimg${id}`).value
+            };
+            enviarDatos("guardarPack", { pack: pack, esNuevo: esNuevo });
+        }
+
+        function enviarDatos(accion, payload) {
+            payload.accion = accion;
+            const btn = document.activeElement; 
+            if(btn) btn.textContent = "⏳";
+            
+            fetch(API_URL, { method: "POST", body: JSON.stringify(payload) })
+            .then(res => res.json())
+            .then(d => { 
+                alert(d.mensaje || "Operación realizada"); 
+                cargarTodo(); 
+            })
+            .catch(e => alert("Error: " + e));
+        }
+
+        // --- ELIMINAR ---
+        function eliminar(id, tipo) {
+            if(confirm("¿Seguro que quieres borrar este elemento permanentemente?")) {
+                enviarDatos("eliminar", { id: id, tipo: tipo });
+            }
+        }
+
+        // --- RENOMBRADO MASIVO ---
+        function ejecutarRenombrado() {
+            const tipo = document.getElementById('tool-tipo').value;
+            const viejo = document.getElementById('tool-viejo').value;
+            const nuevo = document.getElementById('tool-nuevo').value;
+            
+            if(!viejo || !nuevo) return alert("Completa ambos campos");
+
+            if(confirm(`¿Cambiar "${viejo}" por "${nuevo}" en todos los libros?`)) {
+                enviarDatos("renombrarCategoria", { tipo: tipo, valorViejo: viejo, valorNuevo: nuevo });
+            }
+        }
+
+        // --- IMPORTACIÓN MASIVA ---
+        function interpretarTexto() {
+            const texto = document.getElementById("texto-importar").value;
+            const autorG = document.getElementById("global-autor").value;
+            const generoG = document.getElementById("global-genero").value;
+            const packG = document.getElementById("global-pack").value;
+            
+            listaImportacion = [];
+            
+            texto.split('\n').forEach(linea => {
+                let l = linea.trim();
+                if(!l) return;
+                
+                // Extraer páginas (paginas 300)
+                let paginas = "";
+                const matchPag = l.match(/\((?:paginas|pags\.?|páginas)\s*(\d+)\)/i);
+                if(matchPag) { 
+                    paginas = matchPag[1]; 
+                    l = l.replace(matchPag[0], "").trim(); 
+                }
+                
+                // Limpiar puntos y numeración (1. Hola, 2 - Hola)
+                l = l.replace(/\.$/, "").replace(/^\d+[\.\-\s]*/, "").trim();
+                
+                let titulo = l;
+                let autor = autorG || "Desconocido";
+
+                // Si detecta guion "Titulo - Autor"
+                if(l.includes(" - ")) { 
+                    const p = l.split(" - "); 
+                    titulo = p[0].trim(); 
+                    if(p[1]) autor = p[1].trim(); 
+                }
+
+                if(titulo) {
+                    listaImportacion.push({ 
+                        titulo, autor, 
+                        genero: generoG, 
+                        paginas, 
+                        pack: packG, 
+                        portada: "" 
+                    });
+                }
+            });
+            
+            const div = document.getElementById("preview-data");
+            if(listaImportacion.length > 0) {
+                let html = `✅ <b>${listaImportacion.length} libros listos para guardar:</b><br>`;
+                listaImportacion.slice(0, 5).forEach(x => html += `<small>- ${x.titulo} (${x.autor})</small><br>`);
+                if(listaImportacion.length > 5) html += `<small>... y ${listaImportacion.length - 5} más.</small>`;
+                
+                div.innerHTML = html;
+                document.getElementById("btn-importar").style.display = "inline-block";
+            } else {
+                div.innerHTML = "<span style='color:red'>❌ No se detectaron libros. Revisa el formato.</span>";
+                document.getElementById("btn-importar").style.display = "none";
+            }
+        }
+
+        function enviarImportacion() {
+            enviarDatos("importacionMasiva", { libros: listaImportacion });
+            document.getElementById("texto-importar").value = "";
+            document.getElementById("preview-data").innerHTML = "";
+            document.getElementById("btn-importar").style.display = "none";
+        }
+    </script>
 </body>
 </html>
