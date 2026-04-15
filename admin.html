@@ -227,30 +227,30 @@
                 <button class="btn btn-tools" onclick="ejecutarRenombrado()">Aplicar Corrección en Toda la Base de Datos</button>
             </div>
         </div>
-    </div> <script>
+    </div> 
+
+    <script>
         // ======================================================
         // 🔒 CONFIGURACIÓN DE SEGURIDAD
         // ======================================================
-        const PASSWORD_REAL = "Serepasan7"; // <--- ¡CAMBIA ESTA CONTRASEÑA!
+        const PASSWORD_REAL = "Serepasan7"; // <--- ¡Mantenida tu contraseña original!
         // ======================================================
 
-        const API_URL = "https://script.google.com/macros/s/AKfycbxR9owUKbqXlUj3-hDYZKnFSxHqr1ZHl42z30kWREzJvFhHYwFShP1up5RPm8tuG_RC/exec"; 
+        // ¡URL NUEVA ACTUALIZADA!
+        const API_URL = "https://script.google.com/macros/s/AKfycbzCDWytLMoJ44OMNvPbClR5nZaTZniz4tNT1tEebnQI2MZmp0DoaDZI_KX9KznTIAgA/exec"; 
 
         // --- SISTEMA DE LOGIN ---
         function verificarLogin() {
             const input = document.getElementById("password-input").value;
             if(input === PASSWORD_REAL) {
-                // Contraseña correcta: Ocultamos login y mostramos la app
                 document.getElementById("login-screen").style.display = "none";
                 document.getElementById("app-content").style.display = "block";
-                cargarTodo(); // Recién aquí cargamos los datos
+                cargarTodo(); 
             } else {
-                // Contraseña incorrecta
                 document.getElementById("error-msg").style.display = "block";
             }
         }
 
-        // Permitir entrar con tecla Enter
         document.getElementById("password-input").addEventListener("keypress", function(event) {
             if (event.key === "Enter") verificarLogin();
         });
@@ -260,22 +260,19 @@
         let vistaActual = 'libros';
         let listaImportacion = [];
 
-        // NOTA: Ya no usamos window.onload para cargarTodo, se llama desde verificarLogin()
-
         function cargarTodo() {
             document.getElementById('loading').style.display = 'block';
             
-            fetch(API_URL, { method: "POST", body: JSON.stringify({ accion: "leerTodo" }) })
+            // CAMBIO AQUÍ: Usamos GET para leer los datos igual que en el index (sin CORS)
+            fetch(API_URL + "?accion=leerTodo")
             .then(res => res.json())
             .then(data => {
-                // Guardamos los datos
                 if(data.libros) db.libros = data.libros.map(r => ({ id: r[0], titulo: r[1], autor: r[2], genero: r[3], paginas: r[4], portada: r[5], pack: r[6], drive: r[7] }));
                 if(data.autores) db.autores = data.autores.map(r => ({ id: r[0], nombre: r[1], foto: r[2], bio: r[3] }));
                 if(data.packs) db.packs = data.packs.map(r => ({ id: r[0], nombre: r[1], foto: r[2] }));
 
                 document.getElementById('loading').style.display = 'none';
                 
-                // Dibujamos las tablas
                 renderizarLibros(db.libros);
                 renderizarAutores(db.autores);
                 renderizarPacks(db.packs);
@@ -289,18 +286,15 @@
         // --- SISTEMA DE PESTAÑAS ---
         function cambiarTab(tab) {
             vistaActual = tab;
-            // Desactivar todas
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.seccion-contenido').forEach(s => s.classList.remove('active'));
             
-            // Activar la seleccionada
             const botonTab = document.querySelector(`.tab[onclick="cambiarTab('${tab}')"]`);
             if(botonTab) botonTab.classList.add('active');
             
             const seccion = document.getElementById(`view-${tab}`);
             if(seccion) seccion.classList.add('active');
 
-            // Limpiar buscador
             document.getElementById('buscador').value = "";
             filtrarTabla(); 
         }
@@ -442,12 +436,20 @@
             enviarDatos("guardarPack", { pack: pack, esNuevo: esNuevo });
         }
 
+        // --- LA FUNCIÓN CLAVE PARA EVITAR EL ERROR CORS ---
         function enviarDatos(accion, payload) {
             payload.accion = accion;
             const btn = document.activeElement; 
             if(btn) btn.textContent = "⏳";
             
-            fetch(API_URL, { method: "POST", body: JSON.stringify(payload) })
+            // CAMBIO AQUÍ: Agregamos el header 'text/plain' para el POST
+            fetch(API_URL, { 
+                method: "POST", 
+                headers: {
+                    "Content-Type": "text/plain;charset=utf-8"
+                },
+                body: JSON.stringify(payload) 
+            })
             .then(res => res.json())
             .then(d => { 
                 alert(d.mensaje || "Operación realizada"); 
