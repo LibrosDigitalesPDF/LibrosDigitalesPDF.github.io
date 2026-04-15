@@ -129,6 +129,7 @@
                 <input type="text" id="buscador" class="search-input" placeholder="🔍 Buscar..." onkeyup="filtrarTabla()">
             </div>
             <button class="btn btn-add" onclick="agregarFilaVacia()">+ Nuevo Registro</button>
+            <button class="btn" style="background:#000; color:#0f0;" onclick="probarBuscadorDebug()">🐛 Test de Servidor</button>
         </div>
 
         <div id="loading" style="text-align: center; display: none; padding: 20px;">Cargando base de datos... ⏳</div>
@@ -652,6 +653,29 @@
             } else {
                 alert("No se encontraron portadas nuevas para los libros vacíos.");
             }
+        }
+        
+        // ==========================================
+        // HERRAMIENTA DE DIAGNÓSTICO (DEBUGGER)
+        // ==========================================
+        function probarBuscadorDebug() {
+            const titulo = prompt("Escribe el título de un libro hiper famoso para probar (ej: 1984):", "1984");
+            if(!titulo) return;
+            const autor = prompt("Escribe el autor (opcional, ej: George Orwell):", "");
+            
+            alert("Enviando petición de prueba al servidor. Espera...");
+            
+            fetch(API_URL, { 
+                method: "POST", 
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ accion: "buscarPortada", titulo: titulo, autor: autor }) 
+            })
+            .then(res => res.json())
+            .then(data => { 
+                console.log(data.debug); // Por si quieres verlo en la consola (F12)
+                alert("REPORTE DEL SERVIDOR:\n\n" + data.debug);
+            })
+            .catch(e => alert("Error de red intentando contactar a Google Script: " + e));
         }
     </script>
 </body>
