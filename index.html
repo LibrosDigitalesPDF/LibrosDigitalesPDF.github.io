@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo Digital</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <style>
         /* --- ESTILOS MODERNOS --- */
         :root { --primary: #2563eb; --dark: #1e293b; --bg: #f8fafc; --white: #ffffff; }
@@ -54,18 +57,25 @@
         }
         .card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px rgba(0,0,0,0.1); }
 
-        .card-img { width: 100%; height: 240px; object-fit: cover; background: #eee; }
+        /* CAMBIO AQUI: object-fit contain para que no se corte la portada */
+        .card-img { width: 100%; height: 240px; object-fit: contain; background: #e2e8f0; padding: 5px; box-sizing: border-box;}
+        
         .card-body { padding: 12px; }
         .card-title { font-weight: bold; color: var(--dark); font-size: 1em; margin-bottom: 5px; line-height: 1.3; }
-        .card-sub { color: #64748b; font-size: 0.85em; }
-        .card-badge { display: inline-block; background: #dbeafe; color: var(--primary); font-size: 0.75em; padding: 2px 8px; border-radius: 4px; margin-top: 5px; }
+        .card-sub { color: #64748b; font-size: 0.85em; margin-bottom: 8px;}
+        
+        /* ETIQUETAS MULTIPLES */
+        .badges-container { display: flex; flex-wrap: wrap; gap: 5px; }
+        .card-badge { display: inline-block; font-size: 0.7em; padding: 3px 8px; border-radius: 6px; font-weight: bold; white-space: nowrap; }
+        .badge-pack { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .badge-genero { background: #fce7f3; color: #be185d; border: 1px solid #fbcfe8; }
 
         /* --- VISTA DETALLE --- */
         #vista-detalle { display: none; }
         .detalle-header { text-align: center; background: white; padding: 30px 20px; border-radius: 0 0 20px 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
         
         .perfil-img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.2); margin-bottom: 15px; }
-        .pack-img { width: 140px; height: 200px; border-radius: 8px; object-fit: cover; box-shadow: 0 5px 15px rgba(0,0,0,0.3); margin-bottom: 15px; }
+        .pack-img { width: 140px; height: 200px; border-radius: 8px; object-fit: contain; background: #e2e8f0; box-shadow: 0 5px 15px rgba(0,0,0,0.3); margin-bottom: 15px; }
         
         .detalle-titulo { font-size: 1.8em; font-weight: 800; color: var(--dark); margin: 0; }
         .detalle-sub { color: #64748b; margin-top: 5px; max-width: 600px; margin-left: auto; margin-right: auto; }
@@ -126,10 +136,12 @@
 
     <script>
         // ==========================================
-        // URL DE TU API GOOGLE SCRIPT (YA CONFIGURADA)
-        // Agregamos ?accion=leerTodo directamente en la URL para el método GET
+        // URL DE TU API GOOGLE SCRIPT 
         // ==========================================
         const API_URL = "https://script.google.com/macros/s/AKfycbwJapj6Cdwia7K6MTEAtjJEF2zSEECuVx_dyLrotQpiZYdJSG-JknwbPLCgD-3K1wM5/exec"; 
+
+        // Escudo Anti-Titileos para imágenes vacías
+        window.IMG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300'%3E%3Crect width='200' height='300' fill='%23eee'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23999' font-family='sans-serif'%3ESin Imagen%3C/text%3E%3C/svg%3E";
 
         // Variables Globales
         let db = { libros: [], autores: [], packs: [] };
@@ -137,8 +149,8 @@
 
         // INICIO
         window.onload = function() {
-            // CAMBIO AQUÍ: Ahora usamos fetch() simple sin POST ni body
-            fetch(API_URL)
+            // Date.now() fuerza a evadir la caché
+            fetch(API_URL + "?accion=leerTodo&t=" + Date.now())
             .then(res => {
                 if (!res.ok) {
                     throw new Error("Error en la red: " + res.status);
@@ -146,9 +158,8 @@
                 return res.json();
             })
             .then(data => {
-                // Verificamos si la respuesta del script indica "success"
                 if (data.status === "success") {
-                    if(data.libros) db.libros = data.libros.map(r => ({ id: r[0], titulo: r[1], autor: r[2], genero: r[3], paginas: r[4], portada: r[5], pack: r[6] }));
+                    if(data.libros) db.libros = data.libros.map(r => ({ id: r[0], titulo: r[1], autor: r[2], genero: r[3] ? String(r[3]) : "", paginas: r[4], portada: r[5], pack: r[6] ? String(r[6]) : "" }));
                     if(data.autores) db.autores = data.autores.map(r => ({ id: r[0], nombre: r[1], foto: r[2], bio: r[3] }));
                     if(data.packs) db.packs = data.packs.map(r => ({ id: r[0], nombre: r[1], foto: r[2] }));
 
@@ -177,6 +188,22 @@
             renderizarContenido();
         }
 
+        // GENERADOR DE ETIQUETAS (Separa por comas)
+        function generarBadges(libro) {
+            let html = "";
+            if (libro.genero) {
+                libro.genero.split(',').map(g => g.trim()).filter(g => g).forEach(g => {
+                    html += `<span class="card-badge badge-genero">🏷️ ${g}</span>`;
+                });
+            }
+            if (libro.pack) {
+                libro.pack.split(',').map(p => p.trim()).filter(p => p).forEach(p => {
+                    html += `<span class="card-badge badge-pack">📦 ${p}</span>`;
+                });
+            }
+            return html;
+        }
+
         // --- RENDERIZADO PRINCIPAL ---
         function renderizarContenido() {
             const grid = document.getElementById('grid-contenido');
@@ -187,11 +214,11 @@
                 db.libros.forEach(l => {
                     html += `
                     <div class="card">
-                        <img src="${l.portada}" class="card-img" onerror="this.src='https://via.placeholder.com/200?text=Sin+Portada'">
+                        <img src="${l.portada || window.IMG_PLACEHOLDER}" class="card-img" onerror="this.onerror=null; this.src=window.IMG_PLACEHOLDER;">
                         <div class="card-body">
                             <div class="card-title">${l.titulo}</div>
                             <div class="card-sub">👤 ${l.autor}</div>
-                            ${l.pack ? `<div class="card-badge">📦 ${l.pack}</div>` : ''}
+                            <div class="badges-container">${generarBadges(l)}</div>
                         </div>
                     </div>`;
                 });
@@ -200,7 +227,7 @@
                 db.autores.forEach(a => {
                     html += `
                     <div class="card" onclick="abrirDetalle('autor', '${a.nombre}', '${a.foto}', '${a.bio}')">
-                        <img src="${a.foto}" class="card-img" style="object-fit:cover;" onerror="this.src='https://via.placeholder.com/200?text=Autor'">
+                        <img src="${a.foto || window.IMG_PLACEHOLDER}" class="card-img" style="object-fit:cover;" onerror="this.onerror=null; this.src=window.IMG_PLACEHOLDER;">
                         <div class="card-body" style="text-align:center">
                             <div class="card-title">${a.nombre}</div>
                             <div class="card-sub">Ver colección →</div>
@@ -212,7 +239,7 @@
                 db.packs.forEach(p => {
                     html += `
                     <div class="card" onclick="abrirDetalle('pack', '${p.nombre}', '${p.foto}', 'Saga completa')">
-                        <img src="${p.foto}" class="card-img" onerror="this.src='https://via.placeholder.com/200?text=Pack'">
+                        <img src="${p.foto || window.IMG_PLACEHOLDER}" class="card-img" onerror="this.onerror=null; this.src=window.IMG_PLACEHOLDER;">
                         <div class="card-body">
                             <div class="card-title">${p.nombre}</div>
                             <div class="card-sub">📦 Colección</div>
@@ -221,8 +248,18 @@
                 });
             }
             else if (vistaActual === 'generos') {
-                const generos = [...new Set(db.libros.map(l => l.genero).filter(g => g))].sort();
-                generos.forEach(g => {
+                // Extraer géneros únicos separados por comas
+                let todosLosGeneros = [];
+                db.libros.forEach(l => {
+                    if (l.genero) {
+                        l.genero.split(',').forEach(g => {
+                            if(g.trim()) todosLosGeneros.push(g.trim());
+                        });
+                    }
+                });
+                const generosUnicos = [...new Set(todosLosGeneros)].sort();
+
+                generosUnicos.forEach(g => {
                     html += `
                     <div class="card" onclick="abrirDetalle('genero', '${g}', '', 'Categoría')">
                         <div class="card-body" style="text-align:center; padding: 40px 10px;">
@@ -246,11 +283,13 @@
             
             if(tipo === 'autor') {
                 imgEl.className = 'perfil-img';
-                imgEl.src = foto || 'https://via.placeholder.com/150?text=Autor';
+                imgEl.src = foto || window.IMG_PLACEHOLDER;
+                imgEl.onerror = function() { this.onerror=null; this.src=window.IMG_PLACEHOLDER; };
                 imgEl.style.display = 'inline-block';
             } else if (tipo === 'pack') {
                 imgEl.className = 'pack-img';
-                imgEl.src = foto || 'https://via.placeholder.com/150?text=Pack';
+                imgEl.src = foto || window.IMG_PLACEHOLDER;
+                imgEl.onerror = function() { this.onerror=null; this.src=window.IMG_PLACEHOLDER; };
                 imgEl.style.display = 'inline-block';
             } else {
                 imgEl.style.display = 'none';
@@ -262,21 +301,34 @@
             const gridDetalle = document.getElementById('grid-detalle');
             let librosFiltrados = [];
 
-            if (tipo === 'autor') librosFiltrados = db.libros.filter(l => l.autor === nombre);
-            else if (tipo === 'pack') librosFiltrados = db.libros.filter(l => l.pack === nombre);
-            else if (tipo === 'genero') librosFiltrados = db.libros.filter(l => l.genero === nombre);
+            if (tipo === 'autor') {
+                librosFiltrados = db.libros.filter(l => l.autor === nombre);
+            } else if (tipo === 'pack') {
+                // LÓGICA MULTI-PACK
+                librosFiltrados = db.libros.filter(l => {
+                    if (!l.pack) return false;
+                    return l.pack.toLowerCase().split(',').map(p => p.trim()).includes(nombre.toLowerCase().trim());
+                });
+            } else if (tipo === 'genero') {
+                 // LÓGICA MULTI-GÉNERO
+                librosFiltrados = db.libros.filter(l => {
+                    if (!l.genero) return false;
+                    return l.genero.toLowerCase().split(',').map(g => g.trim()).includes(nombre.toLowerCase().trim());
+                });
+            }
 
             gridDetalle.innerHTML = librosFiltrados.map(l => `
                 <div class="card">
-                    <img src="${l.portada}" class="card-img" onerror="this.src='https://via.placeholder.com/200?text=Libro'">
+                    <img src="${l.portada || window.IMG_PLACEHOLDER}" class="card-img" onerror="this.onerror=null; this.src=window.IMG_PLACEHOLDER;">
                     <div class="card-body">
                         <div class="card-title">${l.titulo}</div>
                         <div class="card-sub">📖 ${l.paginas} págs</div>
+                        <div class="badges-container" style="margin-top:5px;">${generarBadges(l)}</div>
                     </div>
                 </div>
             `).join('');
 
-            if(librosFiltrados.length === 0) gridDetalle.innerHTML = "<p style='text-align:center; width:100%; color:#666'>No hay libros aquí.</p>";
+            if(librosFiltrados.length === 0) gridDetalle.innerHTML = "<p style='grid-column: 1 / -1; text-align:center; color:#666'>No hay libros aquí.</p>";
         }
 
         function cerrarDetalle() {
@@ -294,10 +346,11 @@
                 
                 grid.innerHTML = filtrados.map(l => `
                     <div class="card">
-                        <img src="${l.portada}" class="card-img" onerror="this.src='https://via.placeholder.com/200?text=Libro'">
+                        <img src="${l.portada || window.IMG_PLACEHOLDER}" class="card-img" onerror="this.onerror=null; this.src=window.IMG_PLACEHOLDER;">
                         <div class="card-body">
                             <div class="card-title">${l.titulo}</div>
                             <div class="card-sub">👤 ${l.autor}</div>
+                            <div class="badges-container">${generarBadges(l)}</div>
                         </div>
                     </div>`).join('');
             } else {
