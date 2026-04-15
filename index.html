@@ -16,10 +16,10 @@
         
         /* LOGO DEL SITIO */
         .site-logo { 
-            max-height: 80px; /* Tamaño máximo para que no sea gigante */
+            max-height: 80px; 
             width: auto; 
             display: block;
-            border-radius: 8px; /* Un poco de borde redondeado opcional */
+            border-radius: 8px; 
         }
 
         /* BUSCADOR */
@@ -75,8 +75,8 @@
         @media (max-width: 768px) {
             .grid { grid-template-columns: repeat(2, 1fr); gap: 15px; } 
             .card-img { height: 200px; }
-            .nav-chips { justify-content: flex-start; } /* Scroll horizontal en móvil */
-            .site-logo { max-height: 60px; } /* Logo un poco más chico en móvil */
+            .nav-chips { justify-content: flex-start; } 
+            .site-logo { max-height: 60px; } 
         }
     </style>
 </head>
@@ -127,8 +127,9 @@
     <script>
         // ==========================================
         // URL DE TU API GOOGLE SCRIPT (YA CONFIGURADA)
+        // Agregamos ?accion=leerTodo directamente en la URL para el método GET
         // ==========================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbxR9owUKbqXlUj3-hDYZKnFSxHqr1ZHl42z30kWREzJvFhHYwFShP1up5RPm8tuG_RC/exec"; 
+        const API_URL = "https://script.google.com/macros/s/AKfycbxR9owUKbqXlUj3-hDYZKnFSxHqr1ZHl42z30kWREzJvFhHYwFShP1up5RPm8tuG_RC/exec?accion=leerTodo"; 
 
         // Variables Globales
         let db = { libros: [], autores: [], packs: [] };
@@ -136,19 +137,30 @@
 
         // INICIO
         window.onload = function() {
-            fetch(API_URL, { method: "POST", body: JSON.stringify({ accion: "leerTodo" }) })
-            .then(res => res.json())
+            // CAMBIO AQUÍ: Ahora usamos fetch() simple sin POST ni body
+            fetch(API_URL)
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error("Error en la red: " + res.status);
+                }
+                return res.json();
+            })
             .then(data => {
-                if(data.libros) db.libros = data.libros.map(r => ({ id: r[0], titulo: r[1], autor: r[2], genero: r[3], paginas: r[4], portada: r[5], pack: r[6] }));
-                if(data.autores) db.autores = data.autores.map(r => ({ id: r[0], nombre: r[1], foto: r[2], bio: r[3] }));
-                if(data.packs) db.packs = data.packs.map(r => ({ id: r[0], nombre: r[1], foto: r[2] }));
+                // Verificamos si la respuesta del script indica "success"
+                if (data.status === "success") {
+                    if(data.libros) db.libros = data.libros.map(r => ({ id: r[0], titulo: r[1], autor: r[2], genero: r[3], paginas: r[4], portada: r[5], pack: r[6] }));
+                    if(data.autores) db.autores = data.autores.map(r => ({ id: r[0], nombre: r[1], foto: r[2], bio: r[3] }));
+                    if(data.packs) db.packs = data.packs.map(r => ({ id: r[0], nombre: r[1], foto: r[2] }));
 
-                document.getElementById('loader').style.display = 'none';
-                renderizarContenido(); 
+                    document.getElementById('loader').style.display = 'none';
+                    renderizarContenido(); 
+                } else {
+                    throw new Error("El script devolvió un error: " + (data.error || "Desconocido"));
+                }
             })
             .catch(e => {
                 document.getElementById('loader').innerHTML = "Error cargando datos. Revisa tu conexión.";
-                console.error(e);
+                console.error("Hubo un problema con el fetch:", e);
             });
         };
 
