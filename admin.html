@@ -134,6 +134,10 @@
         <div id="loading" style="text-align: center; display: none; padding: 20px;">Cargando base de datos... ⏳</div>
 
         <div id="view-libros" class="seccion-contenido active">
+            <div style="margin-bottom: 15px; display: flex; justify-content: flex-end;">
+                <button id="btn-masivo" class="btn" style="background:#8b5cf6;" onclick="buscarPortadasMasivo()">✨ Autocompletar Faltantes</button>
+            </div>
+
             <div class="table-container">
                 <table id="tabla-libros">
                     <thead>
@@ -231,13 +235,15 @@
 
     <script>
         // ======================================================
-        // 🔒 CONFIGURACIÓN DE SEGURIDAD
+        // 🔒 CONFIGURACIÓN DE SEGURIDAD Y URL
         // ======================================================
-        const PASSWORD_REAL = "Serepasan7"; // <--- ¡Mantenida tu contraseña original!
-        // ======================================================
-
-        // ¡URL NUEVA ACTUALIZADA!
+        const PASSWORD_REAL = "Serepasan7"; 
         const API_URL = "https://script.google.com/macros/s/AKfycbyayVDGMLDOtuGatWzNv-RO7NthRF7hVOmZNWO9ytUCMZseqvCma8AeO2XVz8kwO6Ce/exec"; 
+
+        // ======================================================
+        // IMAGEN VACÍA PARA EVITAR TITILEOS (Formato SVG Base64)
+        // ======================================================
+        window.IMG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='300'%3E%3Crect width='200' height='300' fill='%23eee'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23999' font-family='sans-serif'%3ESin Imagen%3C/text%3E%3C/svg%3E";
 
         // --- SISTEMA DE LOGIN ---
         function verificarLogin() {
@@ -263,7 +269,6 @@
         function cargarTodo() {
             document.getElementById('loading').style.display = 'block';
             
-            // CAMBIO AQUÍ: Usamos GET para leer los datos igual que en el index (sin CORS)
             fetch(API_URL + "?accion=leerTodo")
             .then(res => res.json())
             .then(data => {
@@ -319,15 +324,18 @@
         function renderizarLibros(lista) {
             document.getElementById('body-libros').innerHTML = lista.map(l => `
                 <tr>
-                    <td><img src="${l.portada}" class="img-mini" onerror="this.src='https://via.placeholder.com/150?text=Sin+Foto'"></td>
+                    <td><img src="${l.portada}" class="img-mini" onerror="this.onerror=null; this.src=window.IMG_PLACEHOLDER;"></td>
                     <td><input class="celda" id="ltit${l.id}" value="${l.titulo}" placeholder="Título"></td>
                     <td><input class="celda" id="laut${l.id}" value="${l.autor}" placeholder="Autor"></td>
                     <td><input class="celda" id="lgen${l.id}" value="${l.genero}" placeholder="Género"></td>
                     <td><input type="number" class="celda" id="lpag${l.id}" value="${l.paginas}" placeholder="0"></td>
                     <td><input class="celda" id="lpac${l.id}" value="${l.pack}" placeholder="Pack"></td>
-                    <td><input class="celda" id="limg${l.id}" value="${l.portada}" placeholder="https://..."></td>
+                    <td style="display:flex; gap:5px;">
+                        <input class="celda" id="limg${l.id}" value="${l.portada}" placeholder="https://...">
+                        <button class="btn" style="background:#8b5cf6; padding:8px 12px;" onclick="buscarPortadaMagica('${l.id}')" title="Autocompletar Portada">🪄</button>
+                    </td>
                     <td>
-                        <button class="btn btn-save" onclick="guardarLibro('${l.id}')">💾</button>
+                        <button class="btn btn-save" id="btnsave${l.id}" onclick="guardarLibro('${l.id}')">💾</button>
                         <button class="btn btn-del" onclick="eliminar('${l.id}','libro')">🗑️</button>
                     </td>
                 </tr>`).join('');
@@ -336,7 +344,7 @@
         function renderizarAutores(lista) {
             document.getElementById('body-autores').innerHTML = lista.map(a => `
                 <tr>
-                    <td><img src="${a.foto}" class="img-mini" onerror="this.src='https://via.placeholder.com/150?text=Sin+Foto'"></td>
+                    <td><img src="${a.foto}" class="img-mini" onerror="this.onerror=null; this.src=window.IMG_PLACEHOLDER;"></td>
                     <td><input class="celda" id="anom${a.id}" value="${a.nombre}" placeholder="Nombre Autor"></td>
                     <td><input class="celda" id="abio${a.id}" value="${a.bio}" placeholder="Biografía"></td>
                     <td><input class="celda" id="aimg${a.id}" value="${a.foto}" placeholder="https://..."></td>
@@ -350,7 +358,7 @@
         function renderizarPacks(lista) {
             document.getElementById('body-packs').innerHTML = lista.map(p => `
                 <tr>
-                    <td><img src="${p.foto}" class="img-mini" onerror="this.src='https://via.placeholder.com/150?text=Sin+Foto'"></td>
+                    <td><img src="${p.foto}" class="img-mini" onerror="this.onerror=null; this.src=window.IMG_PLACEHOLDER;"></td>
                     <td><input class="celda" id="pnom${p.id}" value="${p.nombre}" placeholder="Nombre Pack"></td>
                     <td><input class="celda" id="pimg${p.id}" value="${p.foto}" placeholder="https://..."></td>
                     <td>
@@ -374,8 +382,11 @@
                     <td><input class="celda" id="lgen${id}" placeholder="Género"></td>
                     <td><input class="celda" id="lpag${id}" placeholder="Págs"></td>
                     <td><input class="celda" id="lpac${id}" placeholder="Pack"></td>
-                    <td><input class="celda" id="limg${id}" placeholder="Link Foto"></td>
-                    <td><button class="btn btn-save" onclick="guardarLibro('${id}', true)">CREAR</button></td>
+                    <td style="display:flex; gap:5px;">
+                        <input class="celda" id="limg${id}" placeholder="Link Foto">
+                        <button class="btn" style="background:#8b5cf6; padding:8px 12px;" onclick="buscarPortadaMagica('${id}')" title="Autocompletar Portada">🪄</button>
+                    </td>
+                    <td><button class="btn btn-save" id="btnsave${id}" onclick="guardarLibro('${id}', true)">CREAR</button></td>
                 </tr>`;
                 document.getElementById('body-libros').insertAdjacentHTML('afterbegin', fila);
             } 
@@ -436,26 +447,28 @@
             enviarDatos("guardarPack", { pack: pack, esNuevo: esNuevo });
         }
 
-        // --- LA FUNCIÓN CLAVE PARA EVITAR EL ERROR CORS ---
-        function enviarDatos(accion, payload) {
+        // --- ENVIAR DATOS A GOOGLE SCRIPT ---
+        function enviarDatos(accion, payload, ocultarAlerta = false) {
             payload.accion = accion;
             const btn = document.activeElement; 
-            if(btn) btn.textContent = "⏳";
+            if(btn && btn.classList.contains('btn-save')) btn.textContent = "⏳";
             
-            // CAMBIO AQUÍ: Agregamos el header 'text/plain' para el POST
-            fetch(API_URL, { 
+            return fetch(API_URL, { 
                 method: "POST", 
-                headers: {
-                    "Content-Type": "text/plain;charset=utf-8"
-                },
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
                 body: JSON.stringify(payload) 
             })
             .then(res => res.json())
             .then(d => { 
-                alert(d.mensaje || "Operación realizada"); 
-                cargarTodo(); 
+                if(!ocultarAlerta) {
+                    alert(d.mensaje || "Operación realizada"); 
+                    cargarTodo(); 
+                }
+                return d;
             })
-            .catch(e => alert("Error: " + e));
+            .catch(e => {
+                if(!ocultarAlerta) alert("Error: " + e);
+            });
         }
 
         // --- ELIMINAR ---
@@ -491,7 +504,6 @@
                 let l = linea.trim();
                 if(!l) return;
                 
-                // Extraer páginas (paginas 300)
                 let paginas = "";
                 const matchPag = l.match(/\((?:paginas|pags\.?|páginas)\s*(\d+)\)/i);
                 if(matchPag) { 
@@ -499,13 +511,10 @@
                     l = l.replace(matchPag[0], "").trim(); 
                 }
                 
-                // Limpiar puntos y numeración (1. Hola, 2 - Hola)
                 l = l.replace(/\.$/, "").replace(/^\d+[\.\-\s]*/, "").trim();
-                
                 let titulo = l;
                 let autor = autorG || "Desconocido";
 
-                // Si detecta guion "Titulo - Autor"
                 if(l.includes(" - ")) { 
                     const p = l.split(" - "); 
                     titulo = p[0].trim(); 
@@ -514,11 +523,7 @@
 
                 if(titulo) {
                     listaImportacion.push({ 
-                        titulo, autor, 
-                        genero: generoG, 
-                        paginas, 
-                        pack: packG, 
-                        portada: "" 
+                        titulo, autor, genero: generoG, paginas, pack: packG, portada: "" 
                     });
                 }
             });
@@ -542,6 +547,111 @@
             document.getElementById("texto-importar").value = "";
             document.getElementById("preview-data").innerHTML = "";
             document.getElementById("btn-importar").style.display = "none";
+        }
+
+        // ==========================================
+        // VARITA MÁGICA INDIVIDUAL
+        // ==========================================
+        function buscarPortadaMagica(id) {
+            const titulo = document.getElementById(`ltit${id}`).value;
+            const autor = document.getElementById(`laut${id}`).value;
+            
+            if (!titulo) return alert("Escribe el título del libro para buscar la portada.");
+            
+            const btn = event.currentTarget;
+            btn.textContent = "⏳";
+            
+            fetch(API_URL, { 
+                method: "POST", 
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ accion: "buscarPortada", titulo: titulo, autor: autor }) 
+            })
+            .then(res => res.json())
+            .then(data => { 
+                btn.textContent = "🪄";
+                if (data.url) {
+                    document.getElementById(`limg${id}`).value = data.url;
+                    document.getElementById(`limg${id}`).style.backgroundColor = "#dcfce3";
+                    setTimeout(() => document.getElementById(`limg${id}`).style.backgroundColor = "", 1500);
+                } else {
+                    alert("No se encontró ninguna portada para este título.");
+                }
+            })
+            .catch(e => {
+                btn.textContent = "🪄";
+                alert("Error de conexión intentando buscar la portada.");
+            });
+        }
+
+        // ==========================================
+        // BOTÓN MÁGICO MASIVO (Busca y guarda automáticamente)
+        // ==========================================
+        async function buscarPortadasMasivo() {
+            const btnMasivo = document.getElementById('btn-masivo');
+            btnMasivo.textContent = "⏳ Buscando portadas y guardando...";
+            btnMasivo.disabled = true;
+
+            const inputs = document.querySelectorAll('input[id^="limg"]');
+            let actualizados = 0;
+
+            for (let input of inputs) {
+                // Solo buscamos si el campo de URL está vacío
+                if (input.value.trim() === "") {
+                    const id = input.id.replace("limg", "");
+                    const titulo = document.getElementById(`ltit${id}`).value;
+                    const autor = document.getElementById(`laut${id}`).value;
+
+                    if (titulo) {
+                        try {
+                            const res = await fetch(API_URL, {
+                                method: "POST",
+                                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                                body: JSON.stringify({ accion: "buscarPortada", titulo: titulo, autor: autor })
+                            });
+                            const data = await res.json();
+                            
+                            if (data.url) {
+                                // 1. Ponemos la URL en pantalla
+                                input.value = data.url;
+                                input.style.backgroundColor = "#dcfce3";
+                                actualizados++;
+
+                                // 2. Autoguardamos en la base de datos silenciosamente
+                                const libroObj = {
+                                    id: id.startsWith("NEW") ? "L-" + Date.now() : id,
+                                    titulo: titulo,
+                                    autor: autor,
+                                    genero: document.getElementById(`lgen${id}`).value,
+                                    paginas: document.getElementById(`lpag${id}`).value,
+                                    pack: document.getElementById(`lpac${id}`).value,
+                                    portada: data.url,
+                                    drive_id: ""
+                                };
+                                
+                                await enviarDatos("guardarLibro", { libro: libroObj, esNuevo: id.startsWith("NEW") }, true);
+                                
+                                // Mostrar un ✅ en el botón de guardar de ese libro para confirmar
+                                const btnGuardar = document.getElementById(`btnsave${id}`);
+                                if(btnGuardar) {
+                                    btnGuardar.textContent = "✅";
+                                    setTimeout(() => btnGuardar.textContent = "💾", 2000);
+                                }
+                            }
+                        } catch (e) {
+                            console.error("Error buscando:", titulo);
+                        }
+                    }
+                }
+            }
+
+            btnMasivo.textContent = "✨ Autocompletar Faltantes";
+            btnMasivo.disabled = false;
+            
+            if(actualizados > 0) {
+                alert(`¡Magia terminada! Se encontraron y guardaron ${actualizados} portadas automáticamente en tu Excel.`);
+            } else {
+                alert("No se encontraron portadas nuevas para los libros vacíos.");
+            }
         }
     </script>
 </body>
